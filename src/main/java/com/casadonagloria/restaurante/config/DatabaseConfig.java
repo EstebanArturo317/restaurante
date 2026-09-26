@@ -13,15 +13,46 @@ public class DatabaseConfig {
     private static final String USER = "root";
     private static final String PASSWORD = "";
 
-    public static Connection getConnection() throws SQLException {
-        return DriverManager.getConnection(URL, USER, PASSWORD);
+    // Obtener conexión a MySQL
+    public static Connection getConnection()
+            throws SQLException {
+
+        return DriverManager.getConnection(
+                URL,
+                USER,
+                PASSWORD
+        );
     }
 
+    // Probar conexión
     public static void main(String[] args) {
+
         try (Connection conexion = getConnection()) {
-            System.out.println("Conexión exitosa a MySQL");
+
+            if (conexion.isValid(5)) {
+
+                System.out.println(
+                        "Conexión exitosa a MySQL"
+                );
+
+                System.out.println(
+                        "Base de datos: " +
+                                conexion.getCatalog()
+                );
+
+            } else {
+
+                System.out.println(
+                        "No se pudo validar la conexión"
+                );
+            }
+
         } catch (SQLException e) {
-            System.out.println("Error al conectar: " + e.getMessage());
+
+            System.err.println(
+                    "Error al conectar con MySQL: "
+                            + e.getMessage()
+            );
         }
     }
 }

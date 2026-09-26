@@ -13,17 +13,8 @@ public class Cliente {
     public Cliente() {
     }
 
-    public Cliente(int idCliente, String nombre,
-                   String telefono, String direccion,
-                   String barrio, String descripcionDir) {
-        this.idCliente = idCliente;
-        this.nombre = nombre;
-        this.telefono = telefono;
-        this.direccion = direccion;
-        this.barrio = barrio;
-        this.descripcionDir = descripcionDir;
-    }
 
+    @SuppressWarnings("unused")
     public int getIdCliente() {
         return idCliente;
     }
@@ -39,6 +30,7 @@ public class Cliente {
     public void setNombre(String nombre) {
         this.nombre = nombre;
     }
+
 
     public String getTelefono() {
         return telefono;
@@ -56,6 +48,7 @@ public class Cliente {
         this.direccion = direccion;
     }
 
+
     public String getBarrio() {
         return barrio;
     }
@@ -63,6 +56,7 @@ public class Cliente {
     public void setBarrio(String barrio) {
         this.barrio = barrio;
     }
+
 
     public String getDescripcionDir() {
         return descripcionDir;
