@@ -199,7 +199,6 @@ public class ClienteDAOImpl implements ClienteDAO {
         }
     }
 
-    // 5. ELIMINAR UN CLIENTE
     @Override
     public boolean eliminarCliente(int id) {
 

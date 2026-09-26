@@ -21,13 +21,12 @@ public class CostoEnvioController {
         this.costoEnvioService = costoEnvioService;
     }
 
-    // Listar todos los costos de envío
     @GetMapping
     public List<CostoEnvio> listar() {
         return costoEnvioService.listar();
     }
 
-    // Buscar un costo de envío por ID
+
     @GetMapping("/{id}")
     public ResponseEntity<CostoEnvio> buscarPorId(
             @PathVariable int id) {
@@ -42,7 +41,6 @@ public class CostoEnvioController {
         return ResponseEntity.ok(costoEnvio);
     }
 
-    // Registrar un nuevo costo de envío
     @PostMapping
     public ResponseEntity<String> guardar(
             @RequestBody CostoEnvio costoEnvio) {
@@ -54,7 +52,7 @@ public class CostoEnvioController {
                 .body("Costo de envío registrado correctamente");
     }
 
-    // Actualizar un costo de envío
+
     @PutMapping("/{id}")
     public ResponseEntity<String> actualizar(
             @PathVariable int id,

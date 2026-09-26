@@ -16,7 +16,7 @@ import java.util.List;
 @Repository
 public class CostoEnvioDAOImpl implements CostoEnvioDAO {
 
-    // LISTAR TODOS LOS COSTOS DE ENVIO
+
     @Override
     public List<CostoEnvio> listar() {
 
@@ -40,7 +40,7 @@ public class CostoEnvioDAOImpl implements CostoEnvioDAO {
         return lista;
     }
 
-    // BUSCAR COSTO DE ENVIO POR ID
+
     @Override
     public CostoEnvio buscarPorId(int idCostoEnvio) {
 
@@ -67,7 +67,7 @@ public class CostoEnvioDAOImpl implements CostoEnvioDAO {
         return null;
     }
 
-    // GUARDAR COSTO DE ENVIO
+
     @Override
     public void guardar(CostoEnvio costoEnvio) {
 
@@ -99,7 +99,7 @@ public class CostoEnvioDAOImpl implements CostoEnvioDAO {
         }
     }
 
-    // ACTUALIZAR COSTO DE ENVIO
+
     @Override
     public void actualizar(CostoEnvio costoEnvio) {
 
@@ -136,7 +136,7 @@ public class CostoEnvioDAOImpl implements CostoEnvioDAO {
         }
     }
 
-    // ELIMINAR COSTO DE ENVIO
+
     @Override
     public void eliminar(int idCostoEnvio) {
 
@@ -156,7 +156,6 @@ public class CostoEnvioDAOImpl implements CostoEnvioDAO {
         }
     }
 
-    // CONVERTIR RESULTSET A OBJETO COSTOENVIO
     private CostoEnvio mapearCostoEnvio(ResultSet rs)
             throws SQLException {
 
