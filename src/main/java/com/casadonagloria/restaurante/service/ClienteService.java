@@ -1,40 +1,38 @@
+
 package com.casadonagloria.restaurante.service;
 
-import com.casadonagloria.restaurante.dao.ClienteDAO;
 import com.casadonagloria.restaurante.model.Cliente;
-import org.springframework.beans.factory.annotation.Autowired;
+import com.casadonagloria.restaurante.dao.ClienteDAO;
 import org.springframework.stereotype.Service;
+
 import java.util.List;
 
 @Service
 public class ClienteService {
 
-    @Autowired
-    private ClienteDAO clienteDAO;
+    private final ClienteDAO clienteDAO;
 
-    public Cliente crearCliente(Cliente cliente) {
-        if (cliente.getNombre() == null || cliente.getNombre().isBlank())
-            throw new IllegalArgumentException("El nombre del cliente es obligatorio");
-        if (cliente.getTelefono() == null || cliente.getTelefono().isBlank())
-            throw new IllegalArgumentException("El teléfono del cliente es obligatorio");
-        return clienteDAO.crear(cliente);
+    public ClienteService(ClienteDAO clienteDAO) {
+        this.clienteDAO = clienteDAO;
     }
 
-    public List<Cliente> listarClientes() { return clienteDAO.listarTodos(); }
+    public List<Cliente> listarClientes() {
+        return clienteDAO.listarClientes();
+    }
 
-    public Cliente obtenerCliente(int id) {
-        Cliente cliente = clienteDAO.obtenerPorId(id);
-        if (cliente == null) throw new RuntimeException("No existe un cliente con id " + id);
-        return cliente;
+    public Cliente buscarPorId(int id) {
+        return clienteDAO.buscarPorId(id);
+    }
+
+    public Cliente guardarCliente(Cliente cliente) {
+        return clienteDAO.guardarCliente(cliente);
     }
 
     public Cliente actualizarCliente(int id, Cliente cliente) {
-        cliente.setIdCliente(id);
-        if (!clienteDAO.actualizar(cliente)) throw new RuntimeException("No existe un cliente con id " + id);
-        return cliente;
+        return clienteDAO.actualizarCliente(id, cliente);
     }
 
-    public void eliminarCliente(int id) {
-        if (!clienteDAO.eliminar(id)) throw new RuntimeException("No existe un cliente con id " + id);
+    public boolean eliminarCliente(int id) {
+        return clienteDAO.eliminarCliente(id);
     }
 }
