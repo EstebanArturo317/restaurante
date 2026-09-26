@@ -17,6 +17,6 @@ public class PlatoController {
     // Obtener todos los platos
     @GetMapping
     public List<Plato> listarPlatos() {
-        return platoDAO.listarTodos(); // O el nombre del metodo que tengas en tu PlatoDAOImpl
+        return platoDAO.listarTodos();
     }
 }
