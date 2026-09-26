@@ -200,49 +200,17 @@ VALUES
     (3, 3, 1, 25000),
     (4, 4, 1, 40000);
 
+CREATE TABLE IF NOT EXISTS plato (
+                                     id_plato INT AUTO_INCREMENT PRIMARY KEY,
+                                     nombre VARCHAR(100) NOT NULL,
+                                     descripcion VARCHAR(300) NULL,
+                                     precio DOUBLE NOT NULL,
+                                     esta_activo BOOLEAN NOT NULL DEFAULT TRUE
+);
+
+INSERT INTO plato (nombre, descripcion, precio, esta_activo) VALUES
+                                                                 ('Margarita Personal', 'Queso mozzarella, tomate y pasta de albahaca', 14000, TRUE),
+                                                                 ('Salchipapa con queso', '500 gramos de papas, salchicha, queso mozzarella y salsa BBQ', 15000, TRUE),
+                                                                 ('Arepa con pollo desmechado', 'Arepa de maiz, mantequilla, pollo desmechado y queso mozzarella', 18000, TRUE);
 
 
-SELECT * FROM cliente;
-
-
-
-
-SELECT * FROM producto;
-
-
-
-
-SELECT * FROM pedido;
-
-
-
-SELECT
-    p.id_pedido,
-    c.nombre AS cliente,
-    pr.nombre AS producto,
-    dp.cantidad,
-    dp.precio_unitario,
-    dp.cantidad * dp.precio_unitario AS subtotal
-FROM pedido p
-         INNER JOIN cliente c
-                    ON p.id_cliente = c.id_cliente
-         INNER JOIN detalle_pedido dp
-                    ON p.id_pedido = dp.id_pedido
-         INNER JOIN producto pr
-                    ON dp.id_producto = pr.id_producto;
-
-
-SELECT
-    p.id_pedido,
-    c.nombre AS cliente,
-    p.descripcion,
-    p.estado,
-    p.fecha_pedido,
-    p.costo AS subtotal,
-    COALESCE(ce.costo, 0) AS costo_envio,
-    p.costo + COALESCE(ce.costo, 0) AS total
-FROM pedido p
-         INNER JOIN cliente c
-                    ON p.id_cliente = c.id_cliente
-         LEFT JOIN costo_envio ce
-                   ON p.id_costo_envio = ce.id_costo_envio;
