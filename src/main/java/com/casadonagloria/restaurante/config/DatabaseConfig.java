@@ -11,7 +11,7 @@ public class DatabaseConfig {
             "jdbc:mysql://localhost:3306/restaurante_db";
 
     private static final String USER = "root";
-    private static final String PASSWORD = "";
+    private static final String PASSWORD = "1234";
 
     // Obtener conexión a MySQL
     public static Connection getConnection()
