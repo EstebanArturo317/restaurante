@@ -4,27 +4,57 @@ package com.casadonagloria.restaurante.config;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.Properties;
 
 public class DatabaseConfig {
 
-    private static final String URL =
-            "jdbc:mysql://localhost:3306/restaurante_db";
+    private static final Properties properties = new Properties();
 
-    private static final String USER = "root";
-    private static final String PASSWORD = "";
+    static {
+        try (InputStream input = DatabaseConfig.class
+                .getClassLoader()
+                .getResourceAsStream("application.properties")) {
 
-    // Obtener una conexión a MySQL
+            if (input == null) {
+                throw new IllegalStateException(
+                        "No se encontró application.properties"
+                );
+            }
+
+            properties.load(input);
+
+        } catch (IOException e) {
+            throw new ExceptionInInitializerError(e);
+        }
+    }
+
     public static Connection getConnection()
             throws SQLException {
 
+        String url = properties.getProperty(
+                "spring.datasource.url");
+
+        String usuario = properties.getProperty(
+                "spring.datasource.username");
+
+        String password = properties.getProperty(
+                "spring.datasource.password", "");
+
+        if (url == null || usuario == null) {
+            throw new SQLException(
+                    "Falta configurar la conexión a MySQL"
+            );
+        }
+
         return DriverManager.getConnection(
-                URL,
-                USER,
-                PASSWORD
+                url,
+                usuario,
+                password
         );
     }
 
-    // Probar la conexión y cerrarla automáticamente
     public static void main(String[] args) {
 
         try (Connection conexion = getConnection()) {
@@ -35,8 +65,8 @@ public class DatabaseConfig {
                 );
 
                 System.out.println(
-                        "Base de datos: " +
-                                conexion.getCatalog()
+                        "Base de datos: "
+                                + conexion.getCatalog()
                 );
             } else {
                 System.out.println(
@@ -45,7 +75,6 @@ public class DatabaseConfig {
             }
 
         } catch (SQLException e) {
-
             System.err.println(
                     "Error al conectar con MySQL: "
                             + e.getMessage()
