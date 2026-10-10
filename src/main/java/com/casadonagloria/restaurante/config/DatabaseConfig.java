@@ -13,7 +13,7 @@ public class DatabaseConfig {
     private static final String USER = "root";
     private static final String PASSWORD = "1234";
 
-    // Obtener conexión a MySQL
+    // Obtener una conexión a MySQL
     public static Connection getConnection()
             throws SQLException {
 
@@ -24,13 +24,12 @@ public class DatabaseConfig {
         );
     }
 
-    // Probar conexión
+    // Probar la conexión y cerrarla automáticamente
     public static void main(String[] args) {
 
         try (Connection conexion = getConnection()) {
 
             if (conexion.isValid(5)) {
-
                 System.out.println(
                         "Conexión exitosa a MySQL"
                 );
@@ -39,9 +38,7 @@ public class DatabaseConfig {
                         "Base de datos: " +
                                 conexion.getCatalog()
                 );
-
             } else {
-
                 System.out.println(
                         "No se pudo validar la conexión"
                 );
