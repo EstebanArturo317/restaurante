@@ -15,19 +15,6 @@ public class Pedido {
     public Pedido() {
     }
 
-    public Pedido(int idPedido,
-                  int idCliente,
-                  LocalDateTime fechaHora,
-                  String estado,
-                  BigDecimal valorTotal) {
-
-        this.idPedido = idPedido;
-        this.idCliente = idCliente;
-        this.fechaHora = fechaHora;
-        this.estado = estado;
-        this.valorTotal = valorTotal;
-    }
-
     public int getIdPedido() {
         return idPedido;
     }
@@ -44,6 +31,7 @@ public class Pedido {
         this.idCliente = idCliente;
     }
 
+    @SuppressWarnings("unused")
     public LocalDateTime getFechaHora() {
         return fechaHora;
     }

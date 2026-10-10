@@ -12,19 +12,6 @@ public class DetallePedido {
     public DetallePedido() {
     }
 
-    public DetallePedido(int idDetalle,
-                         int idPedido,
-                         int idPlato,
-                         int cantidad,
-                         int subtotal) {
-
-        this.idDetalle = idDetalle;
-        this.idPedido = idPedido;
-        this.idPlato = idPlato;
-        this.cantidad = cantidad;
-        this.subtotal = subtotal;
-    }
-
     public int getIdDetalle() {
         return idDetalle;
     }
