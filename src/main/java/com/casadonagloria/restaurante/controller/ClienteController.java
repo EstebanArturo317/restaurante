@@ -4,7 +4,6 @@ package com.casadonagloria.restaurante.controller;
 import com.casadonagloria.restaurante.model.Cliente;
 import com.casadonagloria.restaurante.service.ClienteService;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -16,7 +15,6 @@ public class ClienteController {
 
     private final ClienteService clienteService;
 
-    @Autowired
     public ClienteController(ClienteService clienteService) {
         this.clienteService = clienteService;
     }

@@ -1,8 +1,7 @@
 package com.casadonagloria.restaurante.controller;
 
-import com.casadonagloria.restaurante.dao.PlatoDAO;
 import com.casadonagloria.restaurante.model.Plato;
-import org.springframework.beans.factory.annotation.Autowired;
+import com.casadonagloria.restaurante.service.PlatoService;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -11,12 +10,15 @@ import java.util.List;
 @RequestMapping("/api/platos")
 public class PlatoController {
 
-    @Autowired
-    private PlatoDAO platoDAO;
+    private final PlatoService platoService;
+
+    public PlatoController(PlatoService platoService) {
+        this.platoService = platoService;
+    }
 
     // Obtener todos los platos
     @GetMapping
     public List<Plato> listarPlatos() {
-        return platoDAO.listarTodos();
+        return platoService.listarPlatos();
     }
 }
