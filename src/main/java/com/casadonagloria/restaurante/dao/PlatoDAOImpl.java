@@ -19,9 +19,11 @@ public class PlatoDAOImpl implements PlatoDAO {
     @Override
     public Plato crear(Plato plato) {
 
-        String sql = "INSERT INTO restaurante_db.plato " +
-                "(nombre, descripcion, precio, esta_activo) " +
-                "VALUES (?, ?, ?, ?)";
+        String sql = """
+                INSERT INTO restaurante_db.plato
+                (nombre, descripcion, precio, esta_activo)
+                VALUES (?, ?, ?, ?)
+                """;
 
         try (
                 Connection con = DatabaseConfig.getConnection();
@@ -51,6 +53,11 @@ public class PlatoDAOImpl implements PlatoDAO {
             return plato;
 
         } catch (SQLException e) {
+            System.err.println(
+                    "ERROR SQL AL CREAR PLATO: " + e.getMessage()
+            );
+            e.printStackTrace();
+
             throw new RuntimeException(
                     "Error al crear el plato", e
             );
@@ -62,9 +69,11 @@ public class PlatoDAOImpl implements PlatoDAO {
 
         List<Plato> platos = new ArrayList<>();
 
-        String sql = "SELECT id_plato, nombre, " +
-                "descripcion, precio, esta_activo " +
-                "FROM restaurante_db.plato";
+        String sql = """
+                SELECT id_plato, nombre, descripcion,
+                       precio, esta_activo
+                FROM restaurante_db.plato
+                """;
 
         try (
                 Connection con = DatabaseConfig.getConnection();
@@ -88,10 +97,12 @@ public class PlatoDAOImpl implements PlatoDAO {
     @Override
     public Plato obtenerPorId(int id) {
 
-        String sql = "SELECT id_plato, nombre, " +
-                "descripcion, precio, esta_activo " +
-                "FROM restaurante_db.plato " +
-                "WHERE id_plato = ?";
+        String sql = """
+                SELECT id_plato, nombre, descripcion,
+                       precio, esta_activo
+                FROM restaurante_db.plato
+                WHERE id_plato = ?
+                """;
 
         try (
                 Connection con = DatabaseConfig.getConnection();
@@ -101,7 +112,6 @@ public class PlatoDAOImpl implements PlatoDAO {
             ps.setInt(1, id);
 
             try (ResultSet rs = ps.executeQuery()) {
-
                 if (rs.next()) {
                     return mapearPlato(rs);
                 }
@@ -119,10 +129,14 @@ public class PlatoDAOImpl implements PlatoDAO {
     @Override
     public boolean actualizar(Plato plato) {
 
-        String sql = "UPDATE restaurante_db.plato " +
-                "SET nombre = ?, descripcion = ?, " +
-                "precio = ?, esta_activo = ? " +
-                "WHERE id_plato = ?";
+        String sql = """
+                UPDATE restaurante_db.plato
+                SET nombre = ?,
+                    descripcion = ?,
+                    precio = ?,
+                    esta_activo = ?
+                WHERE id_plato = ?
+                """;
 
         try (
                 Connection con = DatabaseConfig.getConnection();
@@ -147,8 +161,10 @@ public class PlatoDAOImpl implements PlatoDAO {
     @Override
     public boolean eliminar(int id) {
 
-        String sql = "DELETE FROM restaurante_db.plato " +
-                "WHERE id_plato = ?";
+        String sql = """
+                DELETE FROM restaurante_db.plato
+                WHERE id_plato = ?
+                """;
 
         try (
                 Connection con = DatabaseConfig.getConnection();
