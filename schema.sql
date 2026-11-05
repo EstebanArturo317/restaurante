@@ -318,8 +318,19 @@ WHERE c.telefono = '3137890123'
       AND d.id_plato = pl.id_plato
 );
 
-SELECT * FROM cliente;
-SELECT * FROM plato;
-SELECT * FROM pedido;
-SELECT * FROM detalle_pedido;
-SHOW TABLES;
+-- consultas especificas
+SELECT id_cliente, nombre, telefono,
+       direccion, barrio, descripcion_dir
+FROM cliente;
+
+SELECT id_plato, nombre, descripcion,
+       precio, esta_activo
+FROM plato;
+
+SELECT id_pedido, id_cliente, fecha_hora,
+       estado, valor_total
+FROM pedido;
+
+SELECT id_detalle, id_pedido, id_plato,
+       cantidad, subtotal
+FROM detalle_pedido;
