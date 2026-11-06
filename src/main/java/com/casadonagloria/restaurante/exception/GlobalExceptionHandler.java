@@ -64,4 +64,17 @@ public class GlobalExceptionHandler {
                 .status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body(respuesta);
     }
+    @ExceptionHandler(RecursoNoEncontradoException.class)
+    public ResponseEntity<Map<String, Object>> manejarRecursoNoEncontrado(
+            RecursoNoEncontradoException ex) {
+
+        Map<String, Object> respuesta = new HashMap<>();
+
+        respuesta.put("estado", 404);
+        respuesta.put("mensaje", ex.getMessage());
+
+        return ResponseEntity
+                .status(HttpStatus.NOT_FOUND)
+                .body(respuesta);
+    }
 }
