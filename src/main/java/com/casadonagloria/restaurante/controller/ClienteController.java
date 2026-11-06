@@ -6,7 +6,7 @@ import com.casadonagloria.restaurante.service.ClienteService;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
+import jakarta.validation.Valid;
 import java.util.List;
 
 @RestController
@@ -41,7 +41,7 @@ public class ClienteController {
 
     @PostMapping
     public ResponseEntity<Cliente> registrarCliente(
-            @RequestBody Cliente cliente) {
+            @Valid @RequestBody Cliente cliente) {
 
         Cliente nuevoCliente =
                 clienteService.guardarCliente(cliente);
@@ -53,7 +53,7 @@ public class ClienteController {
     @PutMapping("/{id}")
     public ResponseEntity<Cliente> actualizarCliente(
             @PathVariable int id,
-            @RequestBody Cliente cliente) {
+            @Valid @RequestBody Cliente cliente) {
 
         Cliente actualizado =
                 clienteService.actualizarCliente(id, cliente);
