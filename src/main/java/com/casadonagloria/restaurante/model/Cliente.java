@@ -1,4 +1,5 @@
 package com.casadonagloria.restaurante.model;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import jakarta.persistence.*;
 import java.util.List;
@@ -27,6 +28,7 @@ public class Cliente {
     @Column(name = "descripcion_dir", length = 200)
     private String descripcionDir;
 
+    @JsonIgnore
     @OneToMany(mappedBy = "cliente", cascade = CascadeType.ALL)
     private List<Pedido> pedidos;
 

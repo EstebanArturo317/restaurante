@@ -1,5 +1,5 @@
 package com.casadonagloria.restaurante.model;
-
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -26,7 +26,8 @@ public class Pedido {
 
     @Column(name = "valor_total", nullable = false)
     private BigDecimal valorTotal;
-    
+
+    @JsonIgnore
     @OneToMany(mappedBy = "pedido", cascade = CascadeType.ALL)
     private List<DetallePedido> detalles;
 
