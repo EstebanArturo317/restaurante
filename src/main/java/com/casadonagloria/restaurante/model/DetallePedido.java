@@ -1,54 +1,40 @@
-
 package com.casadonagloria.restaurante.model;
 
+import jakarta.persistence.*;
+
+@Entity
+@Table(name = "detalle_pedido")
 public class DetallePedido {
 
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "id_detalle")
     private int idDetalle;
-    private int idPedido;
-    private int idPlato;
+    
+    @ManyToOne
+    @JoinColumn(name = "id_pedido", nullable = false)
+    private Pedido pedido;
+    
+    @ManyToOne
+    @JoinColumn(name = "id_plato", nullable = false)
+    private Plato plato;
+
+    @Column(nullable = false)
     private int cantidad;
+
+    @Column(nullable = false)
     private int subtotal;
 
-    public DetallePedido() {
-    }
-
-    public int getIdDetalle() {
-        return idDetalle;
-    }
-
-    public void setIdDetalle(int idDetalle) {
-        this.idDetalle = idDetalle;
-    }
-
-    public int getIdPedido() {
-        return idPedido;
-    }
-
-    public void setIdPedido(int idPedido) {
-        this.idPedido = idPedido;
-    }
-
-    public int getIdPlato() {
-        return idPlato;
-    }
-
-    public void setIdPlato(int idPlato) {
-        this.idPlato = idPlato;
-    }
-
-    public int getCantidad() {
-        return cantidad;
-    }
-
-    public void setCantidad(int cantidad) {
-        this.cantidad = cantidad;
-    }
-
-    public int getSubtotal() {
-        return subtotal;
-    }
-
-    public void setSubtotal(int subtotal) {
-        this.subtotal = subtotal;
-    }
+    public DetallePedido() {}
+    
+    public int getIdDetalle() { return idDetalle; }
+    public void setIdDetalle(int idDetalle) { this.idDetalle = idDetalle; }
+    public Pedido getPedido() { return pedido; }
+    public void setPedido(Pedido pedido) { this.pedido = pedido; }
+    public Plato getPlato() { return plato; }
+    public void setPlato(Plato plato) { this.plato = plato; }
+    public int getCantidad() { return cantidad; }
+    public void setCantidad(int cantidad) { this.cantidad = cantidad; }
+    public int getSubtotal() { return subtotal; }
+    public void setSubtotal(int subtotal) { this.subtotal = subtotal; }
 }
