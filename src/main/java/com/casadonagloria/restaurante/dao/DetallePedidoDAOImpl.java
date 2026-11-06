@@ -1,188 +1,77 @@
+
 package com.casadonagloria.restaurante.dao;
 
-import com.casadonagloria.restaurante.config.DatabaseConfig;
 import com.casadonagloria.restaurante.model.DetallePedido;
-import com.casadonagloria.restaurante.model.Pedido;
-import com.casadonagloria.restaurante.model.Plato;
+import com.casadonagloria.restaurante.repository.DetallePedidoRepository;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
-import java.util.ArrayList;
 import java.util.List;
 
 @Repository
 public class DetallePedidoDAOImpl implements DetallePedidoDAO {
 
-    private DetallePedido mapearDetalle(ResultSet rs) throws SQLException {
-        DetallePedido detalle = new DetallePedido();
-        detalle.setIdDetalle(rs.getInt("id_detalle"));
-        
-        Pedido pedido = new Pedido();
-        pedido.setIdPedido(rs.getInt("id_pedido"));
-        detalle.setPedido(pedido);
-        
-        Plato plato = new Plato();
-        plato.setIdPlato(rs.getInt("id_plato"));
-        detalle.setPlato(plato);
+    private final DetallePedidoRepository detallePedidoRepository;
 
-        detalle.setCantidad(rs.getInt("cantidad"));
-        detalle.setSubtotal(rs.getInt("subtotal"));
+    // Inyeccion de dependencias por constructor
+    public DetallePedidoDAOImpl(
+            DetallePedidoRepository detallePedidoRepository) {
 
-        return detalle;
+        this.detallePedidoRepository = detallePedidoRepository;
     }
 
+    // Registrar un detalle de pedido
     @Override
+    @Transactional
     public DetallePedido crear(DetallePedido detallePedido) {
-        String sql = """
-                INSERT INTO restaurante_db.detalle_pedido
-                (id_pedido, id_plato, cantidad, subtotal)
-                VALUES (?, ?, ?, ?)
-                """;
-
-        try (
-                Connection conexion = DatabaseConfig.getConnection();
-                PreparedStatement ps = conexion.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)
-        ) {
-            ps.setInt(1, detallePedido.getPedido().getIdPedido());
-            ps.setInt(2, detallePedido.getPlato().getIdPlato());
-
-            ps.setInt(3, detallePedido.getCantidad());
-            ps.setInt(4, detallePedido.getSubtotal());
-
-            int filas = ps.executeUpdate();
-            if (filas == 0) {
-                throw new SQLException("No se pudo registrar el detalle");
-            }
-
-            try (ResultSet rs = ps.getGeneratedKeys()) {
-                if (rs.next()) {
-                    detallePedido.setIdDetalle(rs.getInt(1));
-                }
-            }
-            return detallePedido;
-        } catch (SQLException e) {
-            throw new RuntimeException("Error al crear el detalle del pedido", e);
-        }
+        return detallePedidoRepository.save(detallePedido);
     }
 
+    // Listar todos los detalles
     @Override
+    @Transactional(readOnly = true)
     public List<DetallePedido> listarTodos() {
-        List<DetallePedido> detalles = new ArrayList<>();
-        String sql = """
-                SELECT id_detalle, id_pedido, id_plato, cantidad, subtotal
-                FROM restaurante_db.detalle_pedido
-                """;
-
-        try (
-                Connection conexion = DatabaseConfig.getConnection();
-                PreparedStatement ps = conexion.prepareStatement(sql);
-                ResultSet rs = ps.executeQuery()
-        ) {
-            while (rs.next()) {
-                detalles.add(mapearDetalle(rs));
-            }
-        } catch (SQLException e) {
-            throw new RuntimeException("Error al listar los detalles", e);
-        }
-        return detalles;
+        return detallePedidoRepository.findAll();
     }
 
+    // Buscar un detalle por su ID
     @Override
+    @Transactional(readOnly = true)
     public DetallePedido obtenerPorId(int id) {
-        String sql = """
-                SELECT id_detalle, id_pedido, id_plato, cantidad, subtotal
-                FROM restaurante_db.detalle_pedido
-                WHERE id_detalle = ?
-                """;
-
-        try (
-                Connection conexion = DatabaseConfig.getConnection();
-                PreparedStatement ps = conexion.prepareStatement(sql)
-        ) {
-            ps.setInt(1, id);
-            try (ResultSet rs = ps.executeQuery()) {
-                if (rs.next()) {
-                    return mapearDetalle(rs);
-                }
-            }
-        } catch (SQLException e) {
-            throw new RuntimeException("Error al buscar el detalle", e);
-        }
-        return null;
+        return detallePedidoRepository.findById(id).orElse(null);
     }
 
+    // Buscar los detalles de un pedido
     @Override
+    @Transactional(readOnly = true)
     public List<DetallePedido> listarPorPedido(int idPedido) {
-        List<DetallePedido> detalles = new ArrayList<>();
-        String sql = """
-                SELECT id_detalle, id_pedido, id_plato, cantidad, subtotal
-                FROM restaurante_db.detalle_pedido
-                WHERE id_pedido = ?
-                """;
-
-        try (
-                Connection conexion = DatabaseConfig.getConnection();
-                PreparedStatement ps = conexion.prepareStatement(sql)
-        ) {
-            ps.setInt(1, idPedido);
-            try (ResultSet rs = ps.executeQuery()) {
-                while (rs.next()) {
-                    detalles.add(mapearDetalle(rs));
-                }
-            }
-        } catch (SQLException e) {
-            throw new RuntimeException("Error al listar los detalles del pedido", e);
-        }
-        return detalles;
+        return detallePedidoRepository.findByPedido_IdPedido(idPedido);
     }
 
+    // Actualizar un detalle existente
     @Override
+    @Transactional
     public boolean actualizar(DetallePedido detallePedido) {
-        String sql = """
-                UPDATE restaurante_db.detalle_pedido
-                SET id_pedido = ?,
-                    id_plato = ?,
-                    cantidad = ?,
-                    subtotal = ?
-                WHERE id_detalle = ?
-                """;
 
-        try (
-                Connection conexion = DatabaseConfig.getConnection();
-                PreparedStatement ps = conexion.prepareStatement(sql)
-        ) {
-            ps.setInt(1, detallePedido.getPedido().getIdPedido());
-            ps.setInt(2, detallePedido.getPlato().getIdPlato());
-
-            ps.setInt(3, detallePedido.getCantidad());
-            ps.setInt(4, detallePedido.getSubtotal());
-            ps.setInt(5, detallePedido.getIdDetalle());
-
-            return ps.executeUpdate() > 0;
-        } catch (SQLException e) {
-            throw new RuntimeException("Error al actualizar el detalle", e);
+        if (!detallePedidoRepository.existsById(
+                detallePedido.getIdDetalle())) {
+            return false;
         }
+
+        detallePedidoRepository.save(detallePedido);
+        return true;
     }
 
+    // Eliminar un detalle por su ID
     @Override
+    @Transactional
     public boolean eliminar(int id) {
-        String sql = """
-                DELETE FROM restaurante_db.detalle_pedido
-                WHERE id_detalle = ?
-                """;
 
-        try (
-                Connection conexion = DatabaseConfig.getConnection();
-                PreparedStatement ps = conexion.prepareStatement(sql)
-        ) {
-            ps.setInt(1, id);
-            return ps.executeUpdate() > 0;
-        } catch (SQLException e) {
-            throw new RuntimeException("Error al eliminar el detalle", e);
+        if (!detallePedidoRepository.existsById(id)) {
+            return false;
         }
+
+        detallePedidoRepository.deleteById(id);
+        return true;
     }
 }
