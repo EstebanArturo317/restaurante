@@ -5,7 +5,7 @@ import com.casadonagloria.restaurante.model.Plato;
 import com.casadonagloria.restaurante.service.PlatoService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
+import jakarta.validation.Valid;
 import java.util.List;
 
 @RestController
@@ -41,7 +41,7 @@ public class PlatoController {
     // Registrar un nuevo plato
     @PostMapping
     public ResponseEntity<Plato> registrarPlato(
-            @RequestBody Plato plato) {
+            @Valid @RequestBody Plato plato) {
 
         Plato nuevoPlato = platoService.guardarPlato(plato);
 
@@ -52,7 +52,7 @@ public class PlatoController {
     @PutMapping("/{id}")
     public ResponseEntity<Plato> actualizarPlato(
             @PathVariable int id,
-            @RequestBody Plato plato) {
+            @Valid @RequestBody Plato plato) {
 
         Plato existente = platoService.buscarPorId(id);
 
