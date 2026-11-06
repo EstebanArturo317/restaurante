@@ -8,7 +8,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-
+import jakarta.validation.Valid;
 @RestController
 @RequestMapping("/api/pedidos")
 public class PedidoController {
@@ -46,7 +46,7 @@ public class PedidoController {
 
     @PostMapping
     public ResponseEntity<Pedido> registrarPedido(
-            @RequestBody Pedido pedido) {
+            @Valid @RequestBody Pedido pedido) {
 
         Pedido nuevoPedido =
                 pedidoService.guardarPedido(pedido);
@@ -54,10 +54,11 @@ public class PedidoController {
         return ResponseEntity.ok(nuevoPedido);
     }
 
+
     @PutMapping("/{id}")
     public ResponseEntity<Pedido> actualizarPedido(
             @PathVariable int id,
-            @RequestBody Pedido pedido) {
+            @Valid @RequestBody Pedido pedido) {
 
         Pedido existente = pedidoService.buscarPorId(id);
 
