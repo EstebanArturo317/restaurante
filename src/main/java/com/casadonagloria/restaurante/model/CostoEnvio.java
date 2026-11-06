@@ -1,13 +1,24 @@
-
 package com.casadonagloria.restaurante.model;
 
+import jakarta.persistence.*;
 import java.math.BigDecimal;
 
+@Entity
+@Table(name = "costo_envio")
 public class CostoEnvio {
 
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "id_costo_envio")
     private int idCostoEnvio;
+
+    @Column(name = "distancia_destino", nullable = false)
     private String distanciaDestino;
+
+    @Column(nullable = false)
     private BigDecimal costo;
+
+    @Column(name = "tiempo_estimado")
     private Integer tiempoEstimado;
 
     public CostoEnvio() {
