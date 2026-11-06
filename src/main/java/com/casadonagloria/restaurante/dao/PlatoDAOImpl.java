@@ -1,4 +1,3 @@
-
 package com.casadonagloria.restaurante.dao;
 
 import com.casadonagloria.restaurante.config.DatabaseConfig;
@@ -18,7 +17,6 @@ public class PlatoDAOImpl implements PlatoDAO {
 
     @Override
     public Plato crear(Plato plato) {
-
         String sql = """
                 INSERT INTO restaurante_db.plato
                 (nombre, descripcion, precio, esta_activo)
@@ -30,7 +28,6 @@ public class PlatoDAOImpl implements PlatoDAO {
                 PreparedStatement ps = con.prepareStatement(
                         sql, Statement.RETURN_GENERATED_KEYS)
         ) {
-
             ps.setString(1, plato.getNombre());
             ps.setString(2, plato.getDescripcion());
             ps.setDouble(3, plato.getPrecio());
@@ -39,9 +36,7 @@ public class PlatoDAOImpl implements PlatoDAO {
             int filas = ps.executeUpdate();
 
             if (filas == 0) {
-                throw new SQLException(
-                        "No se pudo registrar el plato"
-                );
+                throw new SQLException("No se pudo registrar el plato");
             }
 
             try (ResultSet rs = ps.getGeneratedKeys()) {
@@ -53,20 +48,12 @@ public class PlatoDAOImpl implements PlatoDAO {
             return plato;
 
         } catch (SQLException e) {
-            System.err.println(
-                    "ERROR SQL AL CREAR PLATO: " + e.getMessage()
-            );
-            e.printStackTrace();
-
-            throw new RuntimeException(
-                    "Error al crear el plato", e
-            );
+            throw new RuntimeException("Error al crear el plato", e);
         }
     }
 
     @Override
     public List<Plato> listarTodos() {
-
         List<Plato> platos = new ArrayList<>();
 
         String sql = """
@@ -80,15 +67,11 @@ public class PlatoDAOImpl implements PlatoDAO {
                 PreparedStatement ps = con.prepareStatement(sql);
                 ResultSet rs = ps.executeQuery()
         ) {
-
             while (rs.next()) {
                 platos.add(mapearPlato(rs));
             }
-
         } catch (SQLException e) {
-            throw new RuntimeException(
-                    "Error al listar los platos", e
-            );
+            throw new RuntimeException("Error al listar los platos", e);
         }
 
         return platos;
@@ -96,7 +79,6 @@ public class PlatoDAOImpl implements PlatoDAO {
 
     @Override
     public Plato obtenerPorId(int id) {
-
         String sql = """
                 SELECT id_plato, nombre, descripcion,
                        precio, esta_activo
@@ -108,7 +90,6 @@ public class PlatoDAOImpl implements PlatoDAO {
                 Connection con = DatabaseConfig.getConnection();
                 PreparedStatement ps = con.prepareStatement(sql)
         ) {
-
             ps.setInt(1, id);
 
             try (ResultSet rs = ps.executeQuery()) {
@@ -116,11 +97,8 @@ public class PlatoDAOImpl implements PlatoDAO {
                     return mapearPlato(rs);
                 }
             }
-
         } catch (SQLException e) {
-            throw new RuntimeException(
-                    "Error al buscar el plato", e
-            );
+            throw new RuntimeException("Error al buscar el plato", e);
         }
 
         return null;
@@ -128,7 +106,6 @@ public class PlatoDAOImpl implements PlatoDAO {
 
     @Override
     public boolean actualizar(Plato plato) {
-
         String sql = """
                 UPDATE restaurante_db.plato
                 SET nombre = ?,
@@ -142,7 +119,6 @@ public class PlatoDAOImpl implements PlatoDAO {
                 Connection con = DatabaseConfig.getConnection();
                 PreparedStatement ps = con.prepareStatement(sql)
         ) {
-
             ps.setString(1, plato.getNombre());
             ps.setString(2, plato.getDescripcion());
             ps.setDouble(3, plato.getPrecio());
@@ -150,17 +126,13 @@ public class PlatoDAOImpl implements PlatoDAO {
             ps.setInt(5, plato.getIdPlato());
 
             return ps.executeUpdate() > 0;
-
         } catch (SQLException e) {
-            throw new RuntimeException(
-                    "Error al actualizar el plato", e
-            );
+            throw new RuntimeException("Error al actualizar el plato", e);
         }
     }
 
     @Override
     public boolean eliminar(int id) {
-
         String sql = """
                 DELETE FROM restaurante_db.plato
                 WHERE id_plato = ?
@@ -170,29 +142,20 @@ public class PlatoDAOImpl implements PlatoDAO {
                 Connection con = DatabaseConfig.getConnection();
                 PreparedStatement ps = con.prepareStatement(sql)
         ) {
-
             ps.setInt(1, id);
-
             return ps.executeUpdate() > 0;
-
         } catch (SQLException e) {
-            throw new RuntimeException(
-                    "Error al eliminar el plato", e
-            );
+            throw new RuntimeException("Error al eliminar el plato", e);
         }
     }
 
-    private Plato mapearPlato(ResultSet rs)
-            throws SQLException {
-
+    private Plato mapearPlato(ResultSet rs) throws SQLException {
         Plato plato = new Plato();
-
         plato.setIdPlato(rs.getInt("id_plato"));
         plato.setNombre(rs.getString("nombre"));
         plato.setDescripcion(rs.getString("descripcion"));
         plato.setPrecio(rs.getDouble("precio"));
         plato.setEstaActivo(rs.getBoolean("esta_activo"));
-
         return plato;
     }
 }
