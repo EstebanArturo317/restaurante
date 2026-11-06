@@ -1,28 +1,29 @@
 package com.casadonagloria.restaurante.model;
 
+import jakarta.persistence.*;
+
+@Entity
+@Table(name = "plato")
 public class Plato {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "id_plato")
     private int idPlato;
+
+    @Column(nullable = false, length = 100)
     private String nombre;
+
+    @Column(length = 300)
     private String descripcion;
+
+    @Column(nullable = false)
     private double precio;
-    private boolean estaActivo;
+
+    @Column(name = "esta_activo", nullable = false)
+    private boolean estaActivo = true;
 
     public Plato() {}
-
-    public Plato(int idPlato, String nombre, String descripcion, double precio, boolean estaActivo) {
-        this.idPlato = idPlato;
-        this.nombre = nombre;
-        this.descripcion = descripcion;
-        this.precio = precio;
-        this.estaActivo = estaActivo;
-    }
-
-    public Plato(String nombre, String descripcion, double precio, boolean estaActivo) {
-        this.nombre = nombre;
-        this.descripcion = descripcion;
-        this.precio = precio;
-        this.estaActivo = estaActivo;
-    }
 
     public int getIdPlato() { return idPlato; }
     public void setIdPlato(int idPlato) { this.idPlato = idPlato; }
