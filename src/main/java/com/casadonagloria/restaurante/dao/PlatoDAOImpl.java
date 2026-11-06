@@ -1,161 +1,67 @@
+
 package com.casadonagloria.restaurante.dao;
 
-import com.casadonagloria.restaurante.config.DatabaseConfig;
 import com.casadonagloria.restaurante.model.Plato;
+import com.casadonagloria.restaurante.repository.PlatoRepository;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
-import java.util.ArrayList;
 import java.util.List;
 
 @Repository
 public class PlatoDAOImpl implements PlatoDAO {
 
+    private final PlatoRepository platoRepository;
+
+    // Inyeccion de dependencias por constructor
+    public PlatoDAOImpl(PlatoRepository platoRepository) {
+        this.platoRepository = platoRepository;
+    }
+
+    // Registrar un nuevo plato
     @Override
+    @Transactional
     public Plato crear(Plato plato) {
-        String sql = """
-                INSERT INTO restaurante_db.plato
-                (nombre, descripcion, precio, esta_activo)
-                VALUES (?, ?, ?, ?)
-                """;
-
-        try (
-                Connection con = DatabaseConfig.getConnection();
-                PreparedStatement ps = con.prepareStatement(
-                        sql, Statement.RETURN_GENERATED_KEYS)
-        ) {
-            ps.setString(1, plato.getNombre());
-            ps.setString(2, plato.getDescripcion());
-            ps.setDouble(3, plato.getPrecio());
-            ps.setBoolean(4, plato.isEstaActivo());
-
-            int filas = ps.executeUpdate();
-
-            if (filas == 0) {
-                throw new SQLException("No se pudo registrar el plato");
-            }
-
-            try (ResultSet rs = ps.getGeneratedKeys()) {
-                if (rs.next()) {
-                    plato.setIdPlato(rs.getInt(1));
-                }
-            }
-
-            return plato;
-
-        } catch (SQLException e) {
-            throw new RuntimeException("Error al crear el plato", e);
-        }
+        return platoRepository.save(plato);
     }
 
+    // Listar todos los platos
     @Override
+    @Transactional(readOnly = true)
     public List<Plato> listarTodos() {
-        List<Plato> platos = new ArrayList<>();
-
-        String sql = """
-                SELECT id_plato, nombre, descripcion,
-                       precio, esta_activo
-                FROM restaurante_db.plato
-                """;
-
-        try (
-                Connection con = DatabaseConfig.getConnection();
-                PreparedStatement ps = con.prepareStatement(sql);
-                ResultSet rs = ps.executeQuery()
-        ) {
-            while (rs.next()) {
-                platos.add(mapearPlato(rs));
-            }
-        } catch (SQLException e) {
-            throw new RuntimeException("Error al listar los platos", e);
-        }
-
-        return platos;
+        return platoRepository.findAll();
     }
 
+    // Buscar un plato por su ID
     @Override
+    @Transactional(readOnly = true)
     public Plato obtenerPorId(int id) {
-        String sql = """
-                SELECT id_plato, nombre, descripcion,
-                       precio, esta_activo
-                FROM restaurante_db.plato
-                WHERE id_plato = ?
-                """;
-
-        try (
-                Connection con = DatabaseConfig.getConnection();
-                PreparedStatement ps = con.prepareStatement(sql)
-        ) {
-            ps.setInt(1, id);
-
-            try (ResultSet rs = ps.executeQuery()) {
-                if (rs.next()) {
-                    return mapearPlato(rs);
-                }
-            }
-        } catch (SQLException e) {
-            throw new RuntimeException("Error al buscar el plato", e);
-        }
-
-        return null;
+        return platoRepository.findById(id).orElse(null);
     }
 
+    // Actualizar un plato existente
     @Override
+    @Transactional
     public boolean actualizar(Plato plato) {
-        String sql = """
-                UPDATE restaurante_db.plato
-                SET nombre = ?,
-                    descripcion = ?,
-                    precio = ?,
-                    esta_activo = ?
-                WHERE id_plato = ?
-                """;
 
-        try (
-                Connection con = DatabaseConfig.getConnection();
-                PreparedStatement ps = con.prepareStatement(sql)
-        ) {
-            ps.setString(1, plato.getNombre());
-            ps.setString(2, plato.getDescripcion());
-            ps.setDouble(3, plato.getPrecio());
-            ps.setBoolean(4, plato.isEstaActivo());
-            ps.setInt(5, plato.getIdPlato());
-
-            return ps.executeUpdate() > 0;
-        } catch (SQLException e) {
-            throw new RuntimeException("Error al actualizar el plato", e);
+        if (!platoRepository.existsById(plato.getIdPlato())) {
+            return false;
         }
+
+        platoRepository.save(plato);
+        return true;
     }
 
+    // Eliminar un plato por su ID
     @Override
+    @Transactional
     public boolean eliminar(int id) {
-        String sql = """
-                DELETE FROM restaurante_db.plato
-                WHERE id_plato = ?
-                """;
 
-        try (
-                Connection con = DatabaseConfig.getConnection();
-                PreparedStatement ps = con.prepareStatement(sql)
-        ) {
-            ps.setInt(1, id);
-            return ps.executeUpdate() > 0;
-        } catch (SQLException e) {
-            throw new RuntimeException("Error al eliminar el plato", e);
+        if (!platoRepository.existsById(id)) {
+            return false;
         }
-    }
 
-    private Plato mapearPlato(ResultSet rs) throws SQLException {
-        Plato plato = new Plato();
-        plato.setIdPlato(rs.getInt("id_plato"));
-        plato.setNombre(rs.getString("nombre"));
-        plato.setDescripcion(rs.getString("descripcion"));
-        plato.setPrecio(rs.getDouble("precio"));
-        plato.setEstaActivo(rs.getBoolean("esta_activo"));
-        return plato;
+        platoRepository.deleteById(id);
+        return true;
     }
 }
