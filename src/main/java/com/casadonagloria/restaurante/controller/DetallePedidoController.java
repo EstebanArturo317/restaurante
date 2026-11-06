@@ -8,7 +8,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-
+import jakarta.validation.Valid;
 @RestController
 @RequestMapping("/api/detalles-pedido")
 public class DetallePedidoController {
@@ -48,7 +48,7 @@ public class DetallePedidoController {
 
     @PostMapping
     public ResponseEntity<DetallePedido> registrarDetalle(
-            @RequestBody DetallePedido detallePedido) {
+            @Valid @RequestBody DetallePedido detallePedido) {
 
         DetallePedido nuevoDetalle =
                 detallePedidoService.guardarDetalle(detallePedido);
@@ -59,7 +59,7 @@ public class DetallePedidoController {
     @PutMapping("/{id}")
     public ResponseEntity<DetallePedido> actualizarDetalle(
             @PathVariable int id,
-            @RequestBody DetallePedido detallePedido) {
+            @Valid @RequestBody DetallePedido detallePedido) {
 
         DetallePedido existente =
                 detallePedidoService.buscarPorId(id);
