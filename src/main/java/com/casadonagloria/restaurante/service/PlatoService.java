@@ -5,7 +5,7 @@ import com.casadonagloria.restaurante.model.Plato;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-
+import com.casadonagloria.restaurante.exception.RecursoNoEncontradoException;
 @Service
 public class PlatoService {
 
@@ -19,8 +19,18 @@ public class PlatoService {
         return platoDAO.listarTodos();
     }
 
+
     public Plato buscarPorId(int id) {
-        return platoDAO.obtenerPorId(id);
+
+        Plato plato = platoDAO.obtenerPorId(id);
+
+        if (plato == null) {
+            throw new RecursoNoEncontradoException(
+                    "No se encontro el plato con ID: " + id
+            );
+        }
+
+        return plato;
     }
 
     public Plato guardarPlato(Plato plato) {
