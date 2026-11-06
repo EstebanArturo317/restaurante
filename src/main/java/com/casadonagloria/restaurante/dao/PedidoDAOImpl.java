@@ -181,7 +181,7 @@ public class PedidoDAOImpl implements PedidoDAO {
         List<Pedido> pedidos = new ArrayList<>();
 
         String sql = """
-                SELECT *
+                SELECT id_pedido, id_cliente, fecha_hora, estado, valor_total
                 FROM restaurante_db.pedido
                 WHERE id_cliente = ?
                 """;
