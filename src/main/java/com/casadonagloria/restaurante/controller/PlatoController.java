@@ -7,10 +7,21 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import jakarta.validation.Valid;
 import java.util.List;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+
+
 
 @RestController
 @RequestMapping("/api/platos")
+@Tag(
+        name = "Platos",
+        description = "Operaciones para gestionar los platos del restaurante Casa Doña Gloria"
+)
 public class PlatoController {
+
 
     private final PlatoService platoService;
 
@@ -18,13 +29,31 @@ public class PlatoController {
         this.platoService = platoService;
     }
 
-    // Listar todos los platos
+
+    @Operation(
+            summary = "Listar platos",
+            description = "Obtiene todos los platos registrados en el restaurante"
+    )
+    @ApiResponse(
+            responseCode = "200",
+            description = "Platos consultados correctamente"
+    )
+
     @GetMapping
     public List<Plato> listarPlatos() {
         return platoService.listarPlatos();
     }
 
-    // Buscar un plato por su ID
+
+    @Operation(
+            summary = "Buscar plato por ID",
+            description = "Consulta la informacion de un plato mediante su identificador"
+    )
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Plato encontrado"),
+            @ApiResponse(responseCode = "404", description = "Plato no encontrado")
+    })
+
     @GetMapping("/{id}")
     public ResponseEntity<Plato> buscarPlato(
             @PathVariable int id) {
@@ -38,7 +67,17 @@ public class PlatoController {
         return ResponseEntity.ok(plato);
     }
 
-    // Registrar un nuevo plato
+
+    @Operation(
+            summary = "Registrar plato",
+            description = "Registra un nuevo plato en el menu del restaurante"
+    )
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Plato registrado correctamente"),
+            @ApiResponse(responseCode = "400", description = "Datos del plato invalidos"),
+            @ApiResponse(responseCode = "500", description = "Error interno del servidor")
+    })
+
     @PostMapping
     public ResponseEntity<Plato> registrarPlato(
             @Valid @RequestBody Plato plato) {
@@ -48,7 +87,17 @@ public class PlatoController {
         return ResponseEntity.ok(nuevoPlato);
     }
 
-    // Actualizar un plato existente
+
+    @Operation(
+            summary = "Actualizar plato",
+            description = "Actualiza la informacion de un plato existente"
+    )
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Plato actualizado correctamente"),
+            @ApiResponse(responseCode = "400", description = "Datos del plato invalidos"),
+            @ApiResponse(responseCode = "404", description = "Plato no encontrado")
+    })
+
     @PutMapping("/{id}")
     public ResponseEntity<Plato> actualizarPlato(
             @PathVariable int id,
@@ -73,7 +122,17 @@ public class PlatoController {
         );
     }
 
-    // Eliminar un plato por su ID
+
+    @Operation(
+            summary = "Eliminar plato",
+            description = "Elimina un plato del restaurante mediante su identificador"
+    )
+    @ApiResponses({
+            @ApiResponse(responseCode = "204", description = "Plato eliminado correctamente"),
+            @ApiResponse(responseCode = "404", description = "Plato no encontrado"),
+            @ApiResponse(responseCode = "500", description = "Error interno del servidor")
+    })
+
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> eliminarPlato(
             @PathVariable int id) {
