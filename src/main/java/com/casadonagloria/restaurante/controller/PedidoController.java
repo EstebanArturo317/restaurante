@@ -9,9 +9,21 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import jakarta.validation.Valid;
+
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+
+
 @RestController
 @RequestMapping("/api/pedidos")
+@Tag(
+        name = "Pedidos",
+        description = "Operaciones para gestionar los pedidos del restaurante Casa Doña Gloria"
+)
 public class PedidoController {
+
 
     private final PedidoService pedidoService;
 
@@ -19,10 +31,28 @@ public class PedidoController {
         this.pedidoService = pedidoService;
     }
 
+    @Operation(
+            summary = "Listar pedidos",
+            description = "Obtiene todos los pedidos registrados en el restaurante"
+    )
+    @ApiResponse(
+            responseCode = "200",
+            description = "Pedidos consultados correctamente"
+    )
+
     @GetMapping
     public List<Pedido> listarPedidos() {
         return pedidoService.listarPedidos();
     }
+
+    @Operation(
+            summary = "Buscar pedido por ID",
+            description = "Consulta un pedido mediante su identificador"
+    )
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Pedido encontrado"),
+            @ApiResponse(responseCode = "404", description = "Pedido no encontrado")
+    })
 
     @GetMapping("/{id}")
     public ResponseEntity<Pedido> buscarPedido(
@@ -37,12 +67,31 @@ public class PedidoController {
         return ResponseEntity.ok(pedido);
     }
 
+    @Operation(
+            summary = "Listar pedidos de un cliente",
+            description = "Obtiene los pedidos asociados al identificador de un cliente"
+    )
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Consulta realizada correctamente"),
+            @ApiResponse(responseCode = "500", description = "Error interno del servidor")
+    })
+
     @GetMapping("/cliente/{idCliente}")
     public List<Pedido> listarPorCliente(
             @PathVariable int idCliente) {
 
         return pedidoService.listarPorCliente(idCliente);
     }
+
+    @Operation(
+            summary = "Registrar pedido",
+            description = "Registra un nuevo pedido asociado a un cliente"
+    )
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Pedido registrado correctamente"),
+            @ApiResponse(responseCode = "400", description = "Datos del pedido invalidos"),
+            @ApiResponse(responseCode = "500", description = "Error interno del servidor")
+    })
 
     @PostMapping
     public ResponseEntity<Pedido> registrarPedido(
@@ -54,6 +103,17 @@ public class PedidoController {
         return ResponseEntity.ok(nuevoPedido);
     }
 
+
+    @Operation(
+            summary = "Actualizar pedido",
+            description = "Actualiza la informacion de un pedido existente"
+    )
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Pedido actualizado correctamente"),
+            @ApiResponse(responseCode = "400", description = "Datos del pedido invalidos"),
+            @ApiResponse(responseCode = "404", description = "Pedido no encontrado"),
+            @ApiResponse(responseCode = "500", description = "Error interno del servidor")
+    })
 
     @PutMapping("/{id}")
     public ResponseEntity<Pedido> actualizarPedido(
@@ -79,6 +139,16 @@ public class PedidoController {
                 pedidoService.buscarPorId(id)
         );
     }
+
+    @Operation(
+            summary = "Eliminar pedido",
+            description = "Elimina un pedido mediante su identificador"
+    )
+    @ApiResponses({
+            @ApiResponse(responseCode = "204", description = "Pedido eliminado correctamente"),
+            @ApiResponse(responseCode = "404", description = "Pedido no encontrado"),
+            @ApiResponse(responseCode = "500", description = "Error interno del servidor")
+    })
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> eliminarPedido(
