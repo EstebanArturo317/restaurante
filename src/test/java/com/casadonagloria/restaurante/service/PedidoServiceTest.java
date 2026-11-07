@@ -1,12 +1,17 @@
+
 package com.casadonagloria.restaurante.service;
 
+import com.casadonagloria.restaurante.dao.ClienteDAO;
+import com.casadonagloria.restaurante.dao.DetallePedidoDAO;
 import com.casadonagloria.restaurante.dao.PedidoDAO;
+import com.casadonagloria.restaurante.exception.RecursoNoEncontradoException;
 import com.casadonagloria.restaurante.model.Cliente;
+import com.casadonagloria.restaurante.model.DetallePedido;
 import com.casadonagloria.restaurante.model.Pedido;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -22,95 +27,199 @@ class PedidoServiceTest {
     @Mock
     private PedidoDAO pedidoDAO;
 
-    @InjectMocks
-    private PedidoService pedidoService;
+    @Mock
+    private ClienteDAO clienteDAO;
 
-    private List<Pedido> pedidos;
-    private Pedido pedidoPrueba;
+    @Mock
+    private DetallePedidoDAO detallePedidoDAO;
+
+    private PedidoService pedidoService;
+    private Cliente cliente;
+    private Pedido pedido;
 
     @BeforeEach
     void setUp() {
-        Cliente cliente = new Cliente();
+
+        pedidoService = new PedidoService(
+                pedidoDAO,
+                clienteDAO,
+                detallePedidoDAO
+        );
+
+        cliente = new Cliente();
         cliente.setIdCliente(1);
 
-        pedidoPrueba = new Pedido();
-        pedidoPrueba.setIdPedido(1);
-        pedidoPrueba.setCliente(cliente);
-        pedidoPrueba.setEstado("RECIBIDO");
-        pedidoPrueba.setValorTotal(new BigDecimal("29000"));
-
-        Pedido pedido2 = new Pedido();
-        pedido2.setIdPedido(2);
-        pedido2.setCliente(cliente);
-        pedido2.setEstado("EN_PREPARACION");
-        pedido2.setValorTotal(new BigDecimal("22000"));
-
-        pedidos = List.of(pedidoPrueba, pedido2);
+        pedido = new Pedido();
+        pedido.setIdPedido(1);
+        pedido.setCliente(cliente);
+        pedido.setEstado("RECIBIDO");
+        pedido.setValorTotal(new BigDecimal("29000"));
     }
 
     @Test
-    void guardarPedido() {
-        when(pedidoDAO.crear(pedidoPrueba)).thenReturn(pedidoPrueba);
+    void guardarPedidoIniciaTotalEnCero() {
 
-        Pedido resultado = pedidoService.guardarPedido(pedidoPrueba);
+        when(clienteDAO.buscarPorId(1))
+                .thenReturn(cliente);
+
+        when(pedidoDAO.crear(pedido))
+                .thenReturn(pedido);
+
+        Pedido resultado = pedidoService.guardarPedido(pedido);
 
         assertNotNull(resultado);
-        assertEquals(1, resultado.getIdPedido());
+        assertEquals(BigDecimal.ZERO, resultado.getValorTotal());
         assertEquals("RECIBIDO", resultado.getEstado());
-        verify(pedidoDAO, times(1)).crear(pedidoPrueba);
+
+        verify(pedidoDAO).crear(pedido);
+    }
+
+    @Test
+    void guardarPedidoSinClienteExistenteLanza404() {
+
+        assertThrows(
+                RecursoNoEncontradoException.class,
+                () -> pedidoService.guardarPedido(pedido)
+        );
+
+        verify(pedidoDAO, never()).crear(any());
     }
 
     @Test
     void listarPedidos() {
-        when(pedidoDAO.listarTodos()).thenReturn(pedidos);
 
-        List<Pedido> resultado = pedidoService.listarPedidos();
+        when(pedidoDAO.listarTodos())
+                .thenReturn(List.of(pedido));
 
-        assertNotNull(resultado);
-        assertEquals(2, resultado.size());
-        verify(pedidoDAO, times(1)).listarTodos();
+        assertEquals(1, pedidoService.listarPedidos().size());
+
+        verify(pedidoDAO).listarTodos();
     }
 
     @Test
     void buscarPorId() {
-        when(pedidoDAO.obtenerPorId(1)).thenReturn(pedidoPrueba);
+
+        when(pedidoDAO.obtenerPorId(1))
+                .thenReturn(pedido);
 
         Pedido resultado = pedidoService.buscarPorId(1);
 
         assertNotNull(resultado);
-        assertEquals(new BigDecimal("29000"), resultado.getValorTotal());
-        verify(pedidoDAO, times(1)).obtenerPorId(1);
+        assertEquals(1, resultado.getIdPedido());
+
+        verify(pedidoDAO).obtenerPorId(1);
     }
 
     @Test
     void listarPorCliente() {
-        when(pedidoDAO.listarPorCliente(1)).thenReturn(pedidos);
 
-        List<Pedido> resultado = pedidoService.listarPorCliente(1);
+        when(pedidoDAO.listarPorCliente(1))
+                .thenReturn(List.of(pedido));
 
-        assertNotNull(resultado);
-        assertEquals(2, resultado.size());
-        assertEquals(1, resultado.get(0).getCliente().getIdCliente());
-        verify(pedidoDAO, times(1)).listarPorCliente(1);
+        List<Pedido> resultado =
+                pedidoService.listarPorCliente(1);
+
+        assertEquals(1, resultado.size());
+
+        verify(pedidoDAO).listarPorCliente(1);
     }
 
     @Test
-    void actualizarPedido() {
-        when(pedidoDAO.actualizar(pedidoPrueba)).thenReturn(true);
+    void actualizarPedidoPreservaTotalCalculado() {
 
-        boolean resultado = pedidoService.actualizarPedido(pedidoPrueba);
+        when(pedidoDAO.obtenerPorId(1))
+                .thenReturn(pedido);
+
+        when(clienteDAO.buscarPorId(1))
+                .thenReturn(cliente);
+
+        when(detallePedidoDAO.listarPorPedido(1))
+                .thenReturn(List.of());
+
+        when(pedidoDAO.actualizar(pedido))
+                .thenReturn(true);
+
+        boolean resultado =
+                pedidoService.actualizarPedido(pedido);
 
         assertTrue(resultado);
-        verify(pedidoDAO, times(1)).actualizar(pedidoPrueba);
+        assertEquals(BigDecimal.ZERO, pedido.getValorTotal());
+
+        verify(pedidoDAO).actualizar(pedido);
+    }
+
+    @Test
+    void actualizarPedidoNoExistente() {
+
+        boolean resultado =
+                pedidoService.actualizarPedido(pedido);
+
+        assertFalse(resultado);
+
+        verify(pedidoDAO, never()).actualizar(any());
     }
 
     @Test
     void eliminarPedido() {
-        when(pedidoDAO.eliminar(1)).thenReturn(true);
 
-        boolean resultado = pedidoService.eliminarPedido(1);
+        when(pedidoDAO.obtenerPorId(1))
+                .thenReturn(pedido);
+
+        DetallePedido detalle = new DetallePedido();
+        detalle.setIdDetalle(9);
+
+        when(detallePedidoDAO.listarPorPedido(1))
+                .thenReturn(List.of(detalle));
+
+        when(pedidoDAO.eliminar(1))
+                .thenReturn(true);
+
+        boolean resultado =
+                pedidoService.eliminarPedido(1);
 
         assertTrue(resultado);
-        verify(pedidoDAO, times(1)).eliminar(1);
+
+        verify(detallePedidoDAO).eliminar(9);
+        verify(pedidoDAO).eliminar(1);
+    }
+
+    @Test
+    void eliminarPedidoNoExistente() {
+
+        boolean resultado =
+                pedidoService.eliminarPedido(22);
+
+        assertFalse(resultado);
+
+        verify(pedidoDAO, never()).eliminar(anyInt());
+    }
+
+    @Test
+    void recalcularTotal() {
+
+        when(pedidoDAO.obtenerPorId(1))
+                .thenReturn(pedido);
+
+        DetallePedido detalle1 = new DetallePedido();
+        detalle1.setSubtotal(14000);
+
+        DetallePedido detalle2 = new DetallePedido();
+        detalle2.setSubtotal(22000);
+
+        when(detallePedidoDAO.listarPorPedido(1))
+                .thenReturn(List.of(detalle1, detalle2));
+
+        BigDecimal resultado =
+                pedidoService.recalcularTotal(1);
+
+        assertEquals(
+                new BigDecimal("36000"),
+                resultado
+        );
+
+        verify(pedidoDAO).actualizarTotal(
+                1,
+                new BigDecimal("36000")
+        );
     }
 }
