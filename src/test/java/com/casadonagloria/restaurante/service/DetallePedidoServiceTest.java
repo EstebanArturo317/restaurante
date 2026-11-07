@@ -1,22 +1,25 @@
+
 package com.casadonagloria.restaurante.service;
 
 import com.casadonagloria.restaurante.dao.DetallePedidoDAO;
+import com.casadonagloria.restaurante.dao.PedidoDAO;
+import com.casadonagloria.restaurante.dao.PlatoDAO;
+import com.casadonagloria.restaurante.exception.RecursoNoEncontradoException;
 import com.casadonagloria.restaurante.model.DetallePedido;
 import com.casadonagloria.restaurante.model.Pedido;
 import com.casadonagloria.restaurante.model.Plato;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
-import com.casadonagloria.restaurante.dao.PlatoDAO;
-import static org.mockito.ArgumentMatchers.anyInt;
 
 @ExtendWith(MockitoExtension.class)
 class DetallePedidoServiceTest {
@@ -27,128 +30,190 @@ class DetallePedidoServiceTest {
     @Mock
     private PlatoDAO platoDAO;
 
-    @InjectMocks
-    private DetallePedidoService detallePedidoService;
+    @Mock
+    private PedidoDAO pedidoDAO;
 
-    private List<DetallePedido> detalles;
-    private DetallePedido detallePrueba;
+    private DetallePedidoService service;
+    private Pedido pedido;
+    private Plato plato;
+    private DetallePedido detalle;
 
     @BeforeEach
-    void setUp() {
-        Pedido pedido = new Pedido();
-        pedido.setIdPedido(1);
+    void preparar() {
 
-        Plato plato = new Plato();
-        plato.setIdPlato(1);
-
-        detallePrueba = new DetallePedido();
-        detallePrueba.setIdDetalle(1);
-        detallePrueba.setPedido(pedido);
-        detallePrueba.setPlato(plato);
-        detallePrueba.setCantidad(2);
-        detallePrueba.setSubtotal(28000);
-
-        DetallePedido detalle2 = new DetallePedido();
-        detalle2.setIdDetalle(2);
-        detalle2.setPedido(pedido);
-        detalle2.setPlato(plato);
-        detalle2.setCantidad(1);
-        detalle2.setSubtotal(15000);
-
-        detalles = List.of(detallePrueba, detalle2);
-
-        detallePedidoService = new DetallePedidoService(
+        service = new DetallePedidoService(
                 detallePedidoDAO,
-                platoDAO
+                platoDAO,
+                pedidoDAO
         );
 
+        pedido = new Pedido();
+        pedido.setIdPedido(1);
+
+        plato = new Plato();
+        plato.setIdPlato(1);
+        plato.setPrecio(14000);
+        plato.setEstaActivo(true);
+
+        detalle = new DetallePedido();
+        detalle.setIdDetalle(3);
+        detalle.setPedido(pedido);
+        detalle.setPlato(plato);
+        detalle.setCantidad(2);
     }
 
+    private void simularReferenciasValidas() {
 
-    @Test
-    void guardarDetalle() {
-
-        Plato platoRegistrado = new Plato();
-        platoRegistrado.setIdPlato(1);
-        platoRegistrado.setNombre("Hamburguesa Especial");
-        platoRegistrado.setPrecio(14000);
-        platoRegistrado.setEstaActivo(true);
+        when(pedidoDAO.obtenerPorId(1))
+                .thenReturn(pedido);
 
         when(platoDAO.obtenerPorId(1))
-                .thenReturn(platoRegistrado);
+                .thenReturn(plato);
+    }
 
+    @Test
+    void guardarDetalleCalculaSubtotalYTotal() {
 
-        when(detallePedidoDAO.crear(detallePrueba))
-                .thenReturn(detallePrueba);
+        simularReferenciasValidas();
 
+        when(detallePedidoDAO.crear(detalle))
+                .thenReturn(detalle);
 
-        DetallePedido resultado =
-                detallePedidoService.guardarDetalle(detallePrueba);
+        when(detallePedidoDAO.listarPorPedido(1))
+                .thenReturn(List.of(detalle));
 
-        assertNotNull(resultado);
-        assertEquals(1, resultado.getIdDetalle());
-
+        DetallePedido resultado = service.guardarDetalle(detalle);
 
         assertEquals(28000, resultado.getSubtotal());
 
-
-        verify(platoDAO, times(1)).obtenerPorId(1);
-
-        verify(detallePedidoDAO, times(1)).crear(detallePrueba);
+        verify(pedidoDAO).actualizarTotal(
+                1,
+                new BigDecimal("28000")
+        );
     }
 
+    @Test
+    void guardarDetalleConPedidoInexistente() {
+
+        assertThrows(
+                RecursoNoEncontradoException.class,
+                () -> service.guardarDetalle(detalle)
+        );
+
+        verify(detallePedidoDAO, never()).crear(any());
+    }
+
+    @Test
+    void guardarDetalleConPlatoInactivo() {
+
+        when(pedidoDAO.obtenerPorId(1))
+                .thenReturn(pedido);
+
+        plato.setEstaActivo(false);
+
+        when(platoDAO.obtenerPorId(1))
+                .thenReturn(plato);
+
+        assertThrows(
+                IllegalArgumentException.class,
+                () -> service.guardarDetalle(detalle)
+        );
+    }
+
+    @Test
+    void guardarDetalleConCantidadInvalida() {
+
+        detalle.setCantidad(0);
+
+        when(pedidoDAO.obtenerPorId(1))
+                .thenReturn(pedido);
+
+        assertThrows(
+                IllegalArgumentException.class,
+                () -> service.guardarDetalle(detalle)
+        );
+    }
 
     @Test
     void listarDetalles() {
-        when(detallePedidoDAO.listarTodos()).thenReturn(detalles);
 
-        List<DetallePedido> resultado = detallePedidoService.listarDetalles();
+        when(detallePedidoDAO.listarTodos())
+                .thenReturn(List.of(detalle));
 
-        assertNotNull(resultado);
-        assertEquals(2, resultado.size());
-        verify(detallePedidoDAO, times(1)).listarTodos();
+        assertEquals(1, service.listarDetalles().size());
     }
 
     @Test
     void buscarPorId() {
-        when(detallePedidoDAO.obtenerPorId(1)).thenReturn(detallePrueba);
 
-        DetallePedido resultado = detallePedidoService.buscarPorId(1);
+        when(detallePedidoDAO.obtenerPorId(3))
+                .thenReturn(detalle);
 
-        assertNotNull(resultado);
-        assertEquals(2, resultado.getCantidad());
-        verify(detallePedidoDAO, times(1)).obtenerPorId(1);
+        assertSame(detalle, service.buscarPorId(3));
     }
 
     @Test
     void listarPorPedido() {
-        when(detallePedidoDAO.listarPorPedido(1)).thenReturn(detalles);
 
-        List<DetallePedido> resultado = detallePedidoService.listarPorPedido(1);
+        when(detallePedidoDAO.listarPorPedido(1))
+                .thenReturn(List.of(detalle));
 
-        assertNotNull(resultado);
-        assertEquals(2, resultado.size());
-        assertEquals(1, resultado.get(0).getPedido().getIdPedido());
-        verify(detallePedidoDAO, times(1)).listarPorPedido(1);
+        assertEquals(1, service.listarPorPedido(1).size());
     }
 
     @Test
-    void actualizarDetalle() {
-        when(detallePedidoDAO.actualizar(detallePrueba)).thenReturn(true);
+    void actualizarDetalleCalculaSubtotalYTotal() {
 
-        boolean resultado = detallePedidoService.actualizarDetalle(detallePrueba);
+        when(detallePedidoDAO.obtenerPorId(3))
+                .thenReturn(detalle);
 
-        assertTrue(resultado);
-        verify(detallePedidoDAO, times(1)).actualizar(detallePrueba);
+        simularReferenciasValidas();
+
+        when(detallePedidoDAO.actualizar(detalle))
+                .thenReturn(true);
+
+        when(detallePedidoDAO.listarPorPedido(1))
+                .thenReturn(List.of(detalle));
+
+        assertTrue(service.actualizarDetalle(detalle));
+
+        assertEquals(28000, detalle.getSubtotal());
+
+        verify(pedidoDAO).actualizarTotal(
+                1,
+                new BigDecimal("28000")
+        );
     }
 
     @Test
-    void eliminarDetalle() {
-        when(detallePedidoDAO.eliminar(1)).thenReturn(true);
+    void actualizarDetalleInexistente() {
 
-        boolean resultado = detallePedidoService.eliminarDetalle(1);
+        assertFalse(service.actualizarDetalle(detalle));
+    }
 
-        assertTrue(resultado);
-        verify(detallePedidoDAO, times(1)).eliminar(1);
+    @Test
+    void eliminarDetalleRecalculaTotal() {
+
+        when(detallePedidoDAO.obtenerPorId(3))
+                .thenReturn(detalle);
+
+        when(detallePedidoDAO.eliminar(3))
+                .thenReturn(true);
+
+        when(detallePedidoDAO.listarPorPedido(1))
+                .thenReturn(List.of());
+
+        assertTrue(service.eliminarDetalle(3));
+
+        verify(pedidoDAO).actualizarTotal(
+                1,
+                BigDecimal.ZERO
+        );
+    }
+
+    @Test
+    void eliminarDetalleInexistente() {
+
+        assertFalse(service.eliminarDetalle(3));
     }
 }
