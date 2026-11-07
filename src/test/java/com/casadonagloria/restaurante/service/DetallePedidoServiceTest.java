@@ -15,12 +15,17 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
+import com.casadonagloria.restaurante.dao.PlatoDAO;
+import static org.mockito.ArgumentMatchers.anyInt;
 
 @ExtendWith(MockitoExtension.class)
 class DetallePedidoServiceTest {
 
     @Mock
     private DetallePedidoDAO detallePedidoDAO;
+
+    @Mock
+    private PlatoDAO platoDAO;
 
     @InjectMocks
     private DetallePedidoService detallePedidoService;
@@ -51,19 +56,47 @@ class DetallePedidoServiceTest {
         detalle2.setSubtotal(15000);
 
         detalles = List.of(detallePrueba, detalle2);
+
+        detallePedidoService = new DetallePedidoService(
+                detallePedidoDAO,
+                platoDAO
+        );
+
     }
+
 
     @Test
     void guardarDetalle() {
-        when(detallePedidoDAO.crear(detallePrueba)).thenReturn(detallePrueba);
 
-        DetallePedido resultado = detallePedidoService.guardarDetalle(detallePrueba);
+        Plato platoRegistrado = new Plato();
+        platoRegistrado.setIdPlato(1);
+        platoRegistrado.setNombre("Hamburguesa Especial");
+        platoRegistrado.setPrecio(14000);
+        platoRegistrado.setEstaActivo(true);
+
+        when(platoDAO.obtenerPorId(1))
+                .thenReturn(platoRegistrado);
+
+
+        when(detallePedidoDAO.crear(detallePrueba))
+                .thenReturn(detallePrueba);
+
+
+        DetallePedido resultado =
+                detallePedidoService.guardarDetalle(detallePrueba);
 
         assertNotNull(resultado);
         assertEquals(1, resultado.getIdDetalle());
+
+
         assertEquals(28000, resultado.getSubtotal());
+
+
+        verify(platoDAO, times(1)).obtenerPorId(1);
+
         verify(detallePedidoDAO, times(1)).crear(detallePrueba);
     }
+
 
     @Test
     void listarDetalles() {
