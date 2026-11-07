@@ -5,6 +5,7 @@ import com.casadonagloria.restaurante.dao.ClienteDAO;
 import com.casadonagloria.restaurante.dao.DetallePedidoDAO;
 import com.casadonagloria.restaurante.dao.PedidoDAO;
 import com.casadonagloria.restaurante.exception.RecursoNoEncontradoException;
+import com.casadonagloria.restaurante.exception.ReglaNegocioException;
 import com.casadonagloria.restaurante.model.Pedido;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -14,6 +15,10 @@ import java.util.List;
 
 @Service
 public class PedidoServiceImpl implements PedidoService {
+
+    // Orden en el que avanza un pedido
+    private static final List<String> FLUJO_ESTADOS =
+            List.of("RECIBIDO", "EN_PREPARACION", "LISTO", "ENTREGADO");
 
     private final PedidoDAO pedidoDAO;
     private final ClienteDAO clienteDAO;
@@ -146,5 +151,41 @@ public class PedidoServiceImpl implements PedidoService {
                         BigDecimal.ZERO,
                         BigDecimal::add
                 );
+    }
+
+    // Caso de uso: avanzar el estado del pedido solo al siguiente paso
+    @Transactional
+    @Override
+    public Pedido cambiarEstado(int id, String nuevoEstado) {
+
+        Pedido pedido = pedidoDAO.obtenerPorId(id);
+
+        if (pedido == null) {
+            throw new RecursoNoEncontradoException(
+                    "No se encontro el pedido con ID: " + id
+            );
+        }
+
+        int posicionNueva = FLUJO_ESTADOS.indexOf(nuevoEstado);
+
+        if (posicionNueva < 0) {
+            throw new IllegalArgumentException(
+                    "Estado no valido: " + nuevoEstado
+            );
+        }
+
+        int posicionActual = FLUJO_ESTADOS.indexOf(pedido.getEstado());
+
+        if (posicionNueva != posicionActual + 1) {
+            throw new ReglaNegocioException(
+                    "No se puede pasar de " + pedido.getEstado()
+                            + " a " + nuevoEstado
+            );
+        }
+
+        pedido.setEstado(nuevoEstado);
+        pedidoDAO.actualizar(pedido);
+
+        return pedido;
     }
 }

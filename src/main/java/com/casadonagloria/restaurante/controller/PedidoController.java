@@ -166,4 +166,25 @@ public class PedidoController {
 
         return ResponseEntity.noContent().build();
     }
+
+    @Operation(
+            summary = "Cambiar estado del pedido",
+            description = "Avanza el pedido al siguiente estado: RECIBIDO, EN_PREPARACION, LISTO, ENTREGADO"
+    )
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Estado actualizado correctamente"),
+            @ApiResponse(responseCode = "400", description = "Estado no valido"),
+            @ApiResponse(responseCode = "404", description = "Pedido no encontrado"),
+            @ApiResponse(responseCode = "409", description = "Cambio de estado no permitido"),
+            @ApiResponse(responseCode = "500", description = "Error interno del servidor")
+    })
+    @PatchMapping("/{id}/estado")
+    public ResponseEntity<Pedido> cambiarEstado(
+            @PathVariable int id,
+            @RequestParam String nuevoEstado) {
+
+        return ResponseEntity.ok(
+                pedidoService.cambiarEstado(id, nuevoEstado)
+        );
+    }
 }

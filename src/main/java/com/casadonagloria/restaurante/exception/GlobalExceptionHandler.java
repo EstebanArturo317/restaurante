@@ -95,4 +95,19 @@ public class GlobalExceptionHandler {
                 .status(HttpStatus.CONFLICT)
                 .body(respuesta);
     }
+
+    // Manejar reglas de negocio incumplidas
+    @ExceptionHandler(ReglaNegocioException.class)
+    public ResponseEntity<Map<String, Object>> manejarReglaNegocio(
+            ReglaNegocioException ex) {
+
+        Map<String, Object> respuesta = new HashMap<>();
+
+        respuesta.put("estado", 409);
+        respuesta.put("mensaje", ex.getMessage());
+
+        return ResponseEntity
+                .status(HttpStatus.CONFLICT)
+                .body(respuesta);
+    }
 }

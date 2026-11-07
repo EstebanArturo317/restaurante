@@ -5,6 +5,7 @@ import com.casadonagloria.restaurante.dao.ClienteDAO;
 import com.casadonagloria.restaurante.dao.DetallePedidoDAO;
 import com.casadonagloria.restaurante.dao.PedidoDAO;
 import com.casadonagloria.restaurante.exception.RecursoNoEncontradoException;
+import com.casadonagloria.restaurante.exception.ReglaNegocioException;
 import com.casadonagloria.restaurante.model.Cliente;
 import com.casadonagloria.restaurante.model.DetallePedido;
 import com.casadonagloria.restaurante.model.Pedido;
@@ -220,6 +221,54 @@ class PedidoServiceTest {
         verify(pedidoDAO).actualizarTotal(
                 1,
                 new BigDecimal("36000")
+        );
+    }
+
+    @Test
+    void cambiarEstadoAvanzaAlSiguientePaso() {
+
+        when(pedidoDAO.obtenerPorId(1)).thenReturn(pedido);
+
+        Pedido resultado =
+                pedidoService.cambiarEstado(1, "EN_PREPARACION");
+
+        assertEquals("EN_PREPARACION", resultado.getEstado());
+
+        verify(pedidoDAO).actualizar(pedido);
+    }
+
+    @Test
+    void cambiarEstadoConSaltoInvalidoLanzaReglaNegocio() {
+
+        when(pedidoDAO.obtenerPorId(1)).thenReturn(pedido);
+
+        assertThrows(
+                ReglaNegocioException.class,
+                () -> pedidoService.cambiarEstado(1, "LISTO")
+        );
+
+        verify(pedidoDAO, never()).actualizar(any());
+    }
+
+    @Test
+    void cambiarEstadoConEstadoDesconocidoLanzaIllegalArgument() {
+
+        when(pedidoDAO.obtenerPorId(1)).thenReturn(pedido);
+
+        assertThrows(
+                IllegalArgumentException.class,
+                () -> pedidoService.cambiarEstado(1, "CANCELADO")
+        );
+    }
+
+    @Test
+    void cambiarEstadoDePedidoInexistenteLanzaNoEncontrado() {
+
+        when(pedidoDAO.obtenerPorId(99)).thenReturn(null);
+
+        assertThrows(
+                RecursoNoEncontradoException.class,
+                () -> pedidoService.cambiarEstado(99, "EN_PREPARACION")
         );
     }
 }

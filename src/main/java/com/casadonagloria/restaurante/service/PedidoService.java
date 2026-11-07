@@ -13,4 +13,5 @@ public interface PedidoService {
     boolean actualizarPedido(Pedido pedido);
     boolean eliminarPedido(int id);
     BigDecimal recalcularTotal(int idPedido);
+    Pedido cambiarEstado(int id, String nuevoEstado);
 }
