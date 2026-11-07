@@ -78,6 +78,7 @@ public class PlatoController {
             @ApiResponse(responseCode = "500", description = "Error interno del servidor")
     })
 
+
     @PostMapping
     public ResponseEntity<Plato> registrarPlato(
             @Valid @RequestBody Plato plato) {
@@ -86,7 +87,6 @@ public class PlatoController {
 
         return ResponseEntity.ok(nuevoPlato);
     }
-
 
     @Operation(
             summary = "Actualizar plato",

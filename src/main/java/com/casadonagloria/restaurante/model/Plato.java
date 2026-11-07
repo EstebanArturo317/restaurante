@@ -1,6 +1,8 @@
 package com.casadonagloria.restaurante.model;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Positive;
 
 @Entity
 @Table(name = "plato")
@@ -11,12 +13,14 @@ public class Plato {
     @Column(name = "id_plato")
     private int idPlato;
 
+    @NotBlank(message = "El nombre del plato es obligatorio")
     @Column(nullable = false, length = 100)
     private String nombre;
 
     @Column(length = 300)
     private String descripcion;
 
+    @Positive(message = "El precio debe ser mayor que cero")
     @Column(nullable = false)
     private double precio;
 
