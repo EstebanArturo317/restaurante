@@ -9,9 +9,21 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import jakarta.validation.Valid;
+
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+
+
 @RestController
 @RequestMapping("/api/detalles-pedido")
+@Tag(
+        name = "Detalles de pedidos",
+        description = "Operaciones para gestionar los platos asociados a los pedidos del restaurante Casa Doña Gloria"
+)
 public class DetallePedidoController {
+
 
     private final DetallePedidoService detallePedidoService;
 
@@ -20,10 +32,28 @@ public class DetallePedidoController {
         this.detallePedidoService = detallePedidoService;
     }
 
+    @Operation(
+            summary = "Listar detalles de pedidos",
+            description = "Obtiene todos los detalles de pedidos registrados"
+    )
+    @ApiResponse(
+            responseCode = "200",
+            description = "Detalles consultados correctamente"
+    )
+
     @GetMapping
     public List<DetallePedido> listarDetalles() {
         return detallePedidoService.listarDetalles();
     }
+
+    @Operation(
+            summary = "Buscar detalle por ID",
+            description = "Consulta un detalle de pedido mediante su identificador"
+    )
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Detalle encontrado"),
+            @ApiResponse(responseCode = "404", description = "Detalle no encontrado")
+    })
 
     @GetMapping("/{id}")
     public ResponseEntity<DetallePedido> buscarDetalle(
@@ -39,12 +69,31 @@ public class DetallePedidoController {
         return ResponseEntity.ok(detalle);
     }
 
+    @Operation(
+            summary = "Listar detalles de un pedido",
+            description = "Obtiene todos los platos y cantidades asociados a un pedido"
+    )
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Consulta realizada correctamente"),
+            @ApiResponse(responseCode = "500", description = "Error interno del servidor")
+    })
+
     @GetMapping("/pedido/{idPedido}")
     public List<DetallePedido> listarPorPedido(
             @PathVariable int idPedido) {
 
         return detallePedidoService.listarPorPedido(idPedido);
     }
+
+    @Operation(
+            summary = "Registrar detalle de pedido",
+            description = "Agrega un plato con su cantidad y subtotal a un pedido"
+    )
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Detalle registrado correctamente"),
+            @ApiResponse(responseCode = "400", description = "Datos del detalle invalidos"),
+            @ApiResponse(responseCode = "500", description = "Error interno del servidor")
+    })
 
     @PostMapping
     public ResponseEntity<DetallePedido> registrarDetalle(
@@ -55,6 +104,17 @@ public class DetallePedidoController {
 
         return ResponseEntity.ok(nuevoDetalle);
     }
+
+    @Operation(
+            summary = "Actualizar detalle de pedido",
+            description = "Modifica el plato, cantidad o subtotal de un detalle existente"
+    )
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Detalle actualizado correctamente"),
+            @ApiResponse(responseCode = "400", description = "Datos del detalle invalidos"),
+            @ApiResponse(responseCode = "404", description = "Detalle no encontrado"),
+            @ApiResponse(responseCode = "500", description = "Error interno del servidor")
+    })
 
     @PutMapping("/{id}")
     public ResponseEntity<DetallePedido> actualizarDetalle(
@@ -81,6 +141,16 @@ public class DetallePedidoController {
                 detallePedidoService.buscarPorId(id)
         );
     }
+
+    @Operation(
+            summary = "Eliminar detalle de pedido",
+            description = "Elimina un detalle mediante su identificador"
+    )
+    @ApiResponses({
+            @ApiResponse(responseCode = "204", description = "Detalle eliminado correctamente"),
+            @ApiResponse(responseCode = "404", description = "Detalle no encontrado"),
+            @ApiResponse(responseCode = "500", description = "Error interno del servidor")
+    })
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> eliminarDetalle(
