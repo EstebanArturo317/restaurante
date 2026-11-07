@@ -3,6 +3,7 @@ package com.casadonagloria.restaurante.controller;
 
 import com.casadonagloria.restaurante.model.Cliente;
 import com.casadonagloria.restaurante.service.ClienteService;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import jakarta.validation.Valid;
@@ -70,7 +71,7 @@ public class ClienteController {
             description = "Registra un nuevo cliente en la base de datos del restaurante"
     )
     @ApiResponses({
-            @ApiResponse(responseCode = "200", description = "Cliente registrado correctamente"),
+            @ApiResponse(responseCode = "201", description = "Cliente registrado correctamente"),
             @ApiResponse(responseCode = "400", description = "Datos del cliente invalidos"),
             @ApiResponse(responseCode = "500", description = "Error interno del servidor")
     })
@@ -82,7 +83,7 @@ public class ClienteController {
         Cliente nuevoCliente =
                 clienteService.guardarCliente(cliente);
 
-        return ResponseEntity.ok(nuevoCliente);
+        return ResponseEntity.status(HttpStatus.CREATED).body(nuevoCliente);
     }
 
 

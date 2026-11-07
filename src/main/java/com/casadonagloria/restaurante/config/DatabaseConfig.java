@@ -54,31 +54,4 @@ public class DatabaseConfig {
                 password
         );
     }
-
-    public static void main(String[] args) {
-
-        try (Connection conexion = getConnection()) {
-
-            if (conexion.isValid(5)) {
-                System.out.println(
-                        "Conexión exitosa a MySQL"
-                );
-
-                System.out.println(
-                        "Base de datos: "
-                                + conexion.getCatalog()
-                );
-            } else {
-                System.out.println(
-                        "No se pudo validar la conexión"
-                );
-            }
-
-        } catch (SQLException e) {
-            System.err.println(
-                    "Error al conectar con MySQL: "
-                            + e.getMessage()
-            );
-        }
-    }
 }
