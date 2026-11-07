@@ -6,6 +6,7 @@ import com.casadonagloria.restaurante.dao.DetallePedidoDAO;
 import com.casadonagloria.restaurante.dao.PedidoDAO;
 import com.casadonagloria.restaurante.exception.RecursoNoEncontradoException;
 import com.casadonagloria.restaurante.exception.ReglaNegocioException;
+import com.casadonagloria.restaurante.model.DetallePedido;
 import com.casadonagloria.restaurante.model.Pedido;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -23,15 +24,18 @@ public class PedidoServiceImpl implements PedidoService {
     private final PedidoDAO pedidoDAO;
     private final ClienteDAO clienteDAO;
     private final DetallePedidoDAO detallePedidoDAO;
+    private final DetallePedidoService detallePedidoService;
 
     public PedidoServiceImpl(
             PedidoDAO pedidoDAO,
             ClienteDAO clienteDAO,
-            DetallePedidoDAO detallePedidoDAO) {
+            DetallePedidoDAO detallePedidoDAO,
+            DetallePedidoService detallePedidoService) {
 
         this.pedidoDAO = pedidoDAO;
         this.clienteDAO = clienteDAO;
         this.detallePedidoDAO = detallePedidoDAO;
+        this.detallePedidoService = detallePedidoService;
     }
 
     @Transactional
@@ -187,5 +191,53 @@ public class PedidoServiceImpl implements PedidoService {
         pedidoDAO.actualizar(pedido);
 
         return pedido;
+    }
+
+    // Caso de uso: ver los pedidos que estan en un estado (vista de cocina)
+    @Override
+    @Transactional(readOnly = true)
+    public List<Pedido> listarPorEstado(String estado) {
+
+        if (!FLUJO_ESTADOS.contains(estado)) {
+            throw new IllegalArgumentException(
+                    "Estado no valido: " + estado
+            );
+        }
+
+        return pedidoDAO.listarTodos().stream()
+                .filter(pedido -> estado.equals(pedido.getEstado()))
+                .toList();
+    }
+
+    // Caso de uso: cliente recurrente repite un pedido anterior
+    @Transactional
+    @Override
+    public Pedido repetirPedido(int idPedidoOriginal) {
+
+        Pedido original = pedidoDAO.obtenerPorId(idPedidoOriginal);
+
+        if (original == null) {
+            throw new RecursoNoEncontradoException(
+                    "No se encontro el pedido con ID: " + idPedidoOriginal
+            );
+        }
+
+        Pedido nuevo = new Pedido();
+        nuevo.setCliente(original.getCliente());
+        Pedido creado = guardarPedido(nuevo);
+
+        // Cada detalle se vuelve a registrar con el precio actual del plato
+        for (DetallePedido detalleOriginal :
+                detallePedidoDAO.listarPorPedido(idPedidoOriginal)) {
+
+            DetallePedido copia = new DetallePedido();
+            copia.setPedido(creado);
+            copia.setPlato(detalleOriginal.getPlato());
+            copia.setCantidad(detalleOriginal.getCantidad());
+
+            detallePedidoService.guardarDetalle(copia);
+        }
+
+        return pedidoDAO.obtenerPorId(creado.getIdPedido());
     }
 }

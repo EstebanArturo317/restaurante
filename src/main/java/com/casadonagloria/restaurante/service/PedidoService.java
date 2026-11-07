@@ -14,4 +14,6 @@ public interface PedidoService {
     boolean eliminarPedido(int id);
     BigDecimal recalcularTotal(int idPedido);
     Pedido cambiarEstado(int id, String nuevoEstado);
+    List<Pedido> listarPorEstado(String estado);
+    Pedido repetirPedido(int idPedidoOriginal);
 }
