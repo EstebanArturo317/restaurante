@@ -188,4 +188,36 @@ public class PedidoController {
                 pedidoService.cambiarEstado(id, nuevoEstado)
         );
     }
+
+    @Operation(
+            summary = "Listar pedidos por estado",
+            description = "Obtiene los pedidos que estan en un estado: RECIBIDO, EN_PREPARACION, LISTO o ENTREGADO"
+    )
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Pedidos consultados correctamente"),
+            @ApiResponse(responseCode = "400", description = "Estado no valido"),
+            @ApiResponse(responseCode = "500", description = "Error interno del servidor")
+    })
+    @GetMapping("/estado/{estado}")
+    public List<Pedido> listarPorEstado(@PathVariable String estado) {
+        return pedidoService.listarPorEstado(estado);
+    }
+
+    @Operation(
+            summary = "Repetir un pedido anterior",
+            description = "Crea un pedido nuevo para el mismo cliente con los mismos platos y cantidades, usando los precios actuales"
+    )
+    @ApiResponses({
+            @ApiResponse(responseCode = "201", description = "Pedido creado correctamente"),
+            @ApiResponse(responseCode = "400", description = "Un plato del pedido original ya no esta disponible"),
+            @ApiResponse(responseCode = "404", description = "Pedido original no encontrado"),
+            @ApiResponse(responseCode = "500", description = "Error interno del servidor")
+    })
+    @PostMapping("/{id}/repetir")
+    public ResponseEntity<Pedido> repetirPedido(@PathVariable int id) {
+
+        return ResponseEntity
+                .status(HttpStatus.CREATED)
+                .body(pedidoService.repetirPedido(id));
+    }
 }
