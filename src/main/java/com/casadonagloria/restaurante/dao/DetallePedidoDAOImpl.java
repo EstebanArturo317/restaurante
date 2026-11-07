@@ -24,7 +24,7 @@ public class DetallePedidoDAOImpl implements DetallePedidoDAO {
     @Override
     @Transactional
     public DetallePedido crear(DetallePedido detallePedido) {
-        return detallePedidoRepository.save(detallePedido);
+        return detallePedidoRepository.saveAndFlush(detallePedido);
     }
 
     // Listar todos los detalles
@@ -58,7 +58,7 @@ public class DetallePedidoDAOImpl implements DetallePedidoDAO {
             return false;
         }
 
-        detallePedidoRepository.save(detallePedido);
+        detallePedidoRepository.saveAndFlush(detallePedido);
         return true;
     }
 
@@ -72,6 +72,7 @@ public class DetallePedidoDAOImpl implements DetallePedidoDAO {
         }
 
         detallePedidoRepository.deleteById(id);
+        detallePedidoRepository.flush();
         return true;
     }
 }

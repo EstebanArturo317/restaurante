@@ -75,7 +75,8 @@ public class DetallePedidoController {
     )
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Consulta realizada correctamente"),
-            @ApiResponse(responseCode = "500", description = "Error interno del servidor")
+            @ApiResponse(responseCode = "404", description = "Referencia no encontrada"),
+            @ApiResponse(responseCode = "409", description = "Conflicto de integridad")
     })
 
     @GetMapping("/pedido/{idPedido}")
@@ -87,12 +88,13 @@ public class DetallePedidoController {
 
     @Operation(
             summary = "Registrar detalle de pedido",
-            description = "Agrega un plato con su cantidad y subtotal a un pedido"
+            description = "Agrega un plato y calcula automaticamente su subtotal y el total del pedido"
     )
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Detalle registrado correctamente"),
             @ApiResponse(responseCode = "400", description = "Datos del detalle invalidos"),
-            @ApiResponse(responseCode = "500", description = "Error interno del servidor")
+            @ApiResponse(responseCode = "404", description = "Referencia no encontrada"),
+            @ApiResponse(responseCode = "409", description = "Conflicto de integridad")
     })
 
     @PostMapping
@@ -107,13 +109,14 @@ public class DetallePedidoController {
 
     @Operation(
             summary = "Actualizar detalle de pedido",
-            description = "Modifica el plato, cantidad o subtotal de un detalle existente"
+            description = "Modifica un detalle y recalcula el subtotal y el total del pedido"
     )
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Detalle actualizado correctamente"),
             @ApiResponse(responseCode = "400", description = "Datos del detalle invalidos"),
             @ApiResponse(responseCode = "404", description = "Detalle no encontrado"),
-            @ApiResponse(responseCode = "500", description = "Error interno del servidor")
+            @ApiResponse(responseCode = "404", description = "Referencia no encontrada"),
+            @ApiResponse(responseCode = "409", description = "Conflicto de integridad")
     })
 
     @PutMapping("/{id}")
@@ -149,7 +152,8 @@ public class DetallePedidoController {
     @ApiResponses({
             @ApiResponse(responseCode = "204", description = "Detalle eliminado correctamente"),
             @ApiResponse(responseCode = "404", description = "Detalle no encontrado"),
-            @ApiResponse(responseCode = "500", description = "Error interno del servidor")
+            @ApiResponse(responseCode = "404", description = "Referencia no encontrada"),
+            @ApiResponse(responseCode = "409", description = "Conflicto de integridad")
     })
 
     @DeleteMapping("/{id}")

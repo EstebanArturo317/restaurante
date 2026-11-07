@@ -2,6 +2,7 @@
 package com.casadonagloria.restaurante.exception;
 
 import org.springframework.http.HttpStatus;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -75,6 +76,23 @@ public class GlobalExceptionHandler {
 
         return ResponseEntity
                 .status(HttpStatus.NOT_FOUND)
+                .body(respuesta);
+    }
+
+    @ExceptionHandler(DataIntegrityViolationException.class)
+    public ResponseEntity<Map<String, Object>> manejarConflicto(
+            DataIntegrityViolationException ex) {
+
+        Map<String, Object> respuesta = new HashMap<>();
+
+        respuesta.put("estado", 409);
+        respuesta.put(
+                "mensaje",
+                "La operacion viola una restriccion de la base de datos"
+        );
+
+        return ResponseEntity
+                .status(HttpStatus.CONFLICT)
                 .body(respuesta);
     }
 }

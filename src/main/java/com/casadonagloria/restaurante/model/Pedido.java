@@ -37,13 +37,13 @@ public class Pedido {
 
 
 
-    @NotNull(message = "El valor total es obligatorio")
+    
     @DecimalMin(
             value = "0.0",
             message = "El valor total no puede ser negativo"
     )
     @Column(name = "valor_total", nullable = false)
-    private BigDecimal valorTotal;
+    private BigDecimal valorTotal = BigDecimal.ZERO;
 
 
     @JsonIgnore
