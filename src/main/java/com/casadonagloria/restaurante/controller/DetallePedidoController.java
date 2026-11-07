@@ -4,6 +4,7 @@ package com.casadonagloria.restaurante.controller;
 import com.casadonagloria.restaurante.model.DetallePedido;
 import com.casadonagloria.restaurante.service.DetallePedidoService;
 
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -91,7 +92,7 @@ public class DetallePedidoController {
             description = "Agrega un plato y calcula automaticamente su subtotal y el total del pedido"
     )
     @ApiResponses({
-            @ApiResponse(responseCode = "200", description = "Detalle registrado correctamente"),
+            @ApiResponse(responseCode = "201", description = "Detalle registrado correctamente"),
             @ApiResponse(responseCode = "400", description = "Datos del detalle invalidos"),
             @ApiResponse(responseCode = "404", description = "Referencia no encontrada"),
             @ApiResponse(responseCode = "409", description = "Conflicto de integridad")
@@ -104,7 +105,7 @@ public class DetallePedidoController {
         DetallePedido nuevoDetalle =
                 detallePedidoService.guardarDetalle(detallePedido);
 
-        return ResponseEntity.ok(nuevoDetalle);
+        return ResponseEntity.status(HttpStatus.CREATED).body(nuevoDetalle);
     }
 
     @Operation(

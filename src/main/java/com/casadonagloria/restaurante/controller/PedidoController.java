@@ -4,6 +4,7 @@ package com.casadonagloria.restaurante.controller;
 import com.casadonagloria.restaurante.model.Pedido;
 import com.casadonagloria.restaurante.service.PedidoService;
 
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -89,7 +90,7 @@ public class PedidoController {
             description = "Registra un pedido asociado a un cliente existente. El total inicia en cero y se calcula con los detalles"
     )
     @ApiResponses({
-            @ApiResponse(responseCode = "200", description = "Pedido registrado correctamente"),
+            @ApiResponse(responseCode = "201", description = "Pedido registrado correctamente"),
             @ApiResponse(responseCode = "400", description = "Datos del pedido invalidos"),
             @ApiResponse(responseCode = "404", description = "Referencia no encontrada"),
             @ApiResponse(responseCode = "409", description = "Conflicto de integridad")
@@ -102,7 +103,7 @@ public class PedidoController {
         Pedido nuevoPedido =
                 pedidoService.guardarPedido(pedido);
 
-        return ResponseEntity.ok(nuevoPedido);
+        return ResponseEntity.status(HttpStatus.CREATED).body(nuevoPedido);
     }
 
 
