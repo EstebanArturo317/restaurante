@@ -33,14 +33,14 @@ class PedidoServiceTest {
     @Mock
     private DetallePedidoDAO detallePedidoDAO;
 
-    private PedidoService pedidoService;
+    private PedidoServiceImpl pedidoService;
     private Cliente cliente;
     private Pedido pedido;
 
     @BeforeEach
     void setUp() {
 
-        pedidoService = new PedidoService(
+        pedidoService = new PedidoServiceImpl(
                 pedidoDAO,
                 clienteDAO,
                 detallePedidoDAO

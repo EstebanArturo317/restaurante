@@ -33,7 +33,7 @@ class DetallePedidoServiceTest {
     @Mock
     private PedidoDAO pedidoDAO;
 
-    private DetallePedidoService service;
+    private DetallePedidoServiceImpl service;
     private Pedido pedido;
     private Plato plato;
     private DetallePedido detalle;
@@ -41,7 +41,7 @@ class DetallePedidoServiceTest {
     @BeforeEach
     void preparar() {
 
-        service = new DetallePedidoService(
+        service = new DetallePedidoServiceImpl(
                 detallePedidoDAO,
                 platoDAO,
                 pedidoDAO

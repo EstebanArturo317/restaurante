@@ -21,7 +21,7 @@ class ClienteServiceTest {
     private ClienteDAO clienteDAO;
 
     @InjectMocks
-    private ClienteService clienteService;
+    private ClienteServiceImpl clienteService;
 
     private List<Cliente> clientes;
     private Cliente clientePrueba;
