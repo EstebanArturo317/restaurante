@@ -321,6 +321,7 @@ class PedidoServiceTest {
         when(detallePedidoDAO.listarPorPedido(1))
                 .thenReturn(List.of(original));
         when(pedidoDAO.obtenerPorId(2)).thenReturn(nuevo);
+        when(detallePedidoDAO.listarPorPedido(2)).thenReturn(List.of());
 
         Pedido resultado = pedidoService.repetirPedido(1);
 
@@ -345,5 +346,34 @@ class PedidoServiceTest {
         );
 
         verify(pedidoDAO, never()).crear(any());
+    }
+
+    @Test
+    void buscarPorIdIncluyeClienteCompletoYDetalles() {
+
+        Cliente completo = new Cliente();
+        completo.setIdCliente(1);
+        completo.setNombre("Juan Perez");
+
+        DetallePedido detalle = new DetallePedido();
+        detalle.setCantidad(2);
+
+        when(pedidoDAO.obtenerPorId(1)).thenReturn(pedido);
+        when(clienteDAO.buscarPorId(1)).thenReturn(completo);
+        when(detallePedidoDAO.listarPorPedido(1))
+                .thenReturn(List.of(detalle));
+
+        Pedido resultado = pedidoService.buscarPorId(1);
+
+        assertEquals("Juan Perez", resultado.getCliente().getNombre());
+        assertEquals(1, resultado.getDetalles().size());
+    }
+
+    @Test
+    void buscarPorIdInexistenteRetornaNull() {
+
+        when(pedidoDAO.obtenerPorId(99)).thenReturn(null);
+
+        assertNull(pedidoService.buscarPorId(99));
     }
 }

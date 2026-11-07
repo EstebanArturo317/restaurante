@@ -6,6 +6,7 @@ import com.casadonagloria.restaurante.dao.DetallePedidoDAO;
 import com.casadonagloria.restaurante.dao.PedidoDAO;
 import com.casadonagloria.restaurante.exception.RecursoNoEncontradoException;
 import com.casadonagloria.restaurante.exception.ReglaNegocioException;
+import com.casadonagloria.restaurante.model.Cliente;
 import com.casadonagloria.restaurante.model.DetallePedido;
 import com.casadonagloria.restaurante.model.Pedido;
 import org.springframework.stereotype.Service;
@@ -55,17 +56,21 @@ public class PedidoServiceImpl implements PedidoService {
 
     @Override
     public List<Pedido> listarPedidos() {
-        return pedidoDAO.listarTodos();
+        return pedidoDAO.listarTodos().stream()
+                .map(this::completar)
+                .toList();
     }
 
     @Override
     public Pedido buscarPorId(int id) {
-        return pedidoDAO.obtenerPorId(id);
+        return completar(pedidoDAO.obtenerPorId(id));
     }
 
     @Override
     public List<Pedido> listarPorCliente(int idCliente) {
-        return pedidoDAO.listarPorCliente(idCliente);
+        return pedidoDAO.listarPorCliente(idCliente).stream()
+                .map(this::completar)
+                .toList();
     }
 
     @Transactional
@@ -206,6 +211,7 @@ public class PedidoServiceImpl implements PedidoService {
 
         return pedidoDAO.listarTodos().stream()
                 .filter(pedido -> estado.equals(pedido.getEstado()))
+                .map(this::completar)
                 .toList();
     }
 
@@ -238,6 +244,30 @@ public class PedidoServiceImpl implements PedidoService {
             detallePedidoService.guardarDetalle(copia);
         }
 
-        return pedidoDAO.obtenerPorId(creado.getIdPedido());
+        return buscarPorId(creado.getIdPedido());
+    }
+
+    // Agrega al pedido los datos completos del cliente y sus platos
+    private Pedido completar(Pedido pedido) {
+
+        if (pedido == null) {
+            return null;
+        }
+
+        if (pedido.getCliente() != null) {
+            Cliente cliente = clienteDAO.buscarPorId(
+                    pedido.getCliente().getIdCliente()
+            );
+
+            if (cliente != null) {
+                pedido.setCliente(cliente);
+            }
+        }
+
+        pedido.setDetalles(
+                detallePedidoDAO.listarPorPedido(pedido.getIdPedido())
+        );
+
+        return pedido;
     }
 }
