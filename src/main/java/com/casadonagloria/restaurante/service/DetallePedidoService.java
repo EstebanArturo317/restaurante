@@ -2,73 +2,47 @@
 package com.casadonagloria.restaurante.service;
 
 import com.casadonagloria.restaurante.dao.DetallePedidoDAO;
-import com.casadonagloria.restaurante.model.DetallePedido;
-import org.springframework.stereotype.Service;
-import java.util.List;
+import com.casadonagloria.restaurante.dao.PedidoDAO;
 import com.casadonagloria.restaurante.dao.PlatoDAO;
-import com.casadonagloria.restaurante.model.Plato;
 import com.casadonagloria.restaurante.exception.RecursoNoEncontradoException;
+import com.casadonagloria.restaurante.model.DetallePedido;
+import com.casadonagloria.restaurante.model.Plato;
+
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.math.BigDecimal;
+import java.math.RoundingMode;
+import java.util.List;
 
 @Service
 public class DetallePedidoService {
 
     private final DetallePedidoDAO detallePedidoDAO;
     private final PlatoDAO platoDAO;
-
+    private final PedidoDAO pedidoDAO;
 
     public DetallePedidoService(
             DetallePedidoDAO detallePedidoDAO,
-            PlatoDAO platoDAO) {
+            PlatoDAO platoDAO,
+            PedidoDAO pedidoDAO) {
 
         this.detallePedidoDAO = detallePedidoDAO;
         this.platoDAO = platoDAO;
+        this.pedidoDAO = pedidoDAO;
     }
 
-
-
+    @Transactional
     public DetallePedido guardarDetalle(DetallePedido detallePedido) {
 
+        int idPedido = validarYCalcular(detallePedido);
 
-        if (detallePedido.getPlato() == null) {
-            throw new IllegalArgumentException(
-                    "Debe seleccionar un plato"
-            );
-        }
+        DetallePedido creado = detallePedidoDAO.crear(detallePedido);
 
+        recalcularTotal(idPedido);
 
-        if (detallePedido.getCantidad() <= 0) {
-            throw new IllegalArgumentException(
-                    "La cantidad debe ser mayor que cero"
-            );
-        }
-
-        int idPlato = detallePedido.getPlato().getIdPlato();
-
-        Plato plato = platoDAO.obtenerPorId(idPlato);
-
-        if (plato == null) {
-            throw new RecursoNoEncontradoException(
-                    "No se encontro el plato con ID: " + idPlato
-            );
-        }
-
-        if (!plato.isEstaActivo()) {
-            throw new IllegalArgumentException(
-                    "El plato seleccionado no esta disponible"
-            );
-        }
-
-        int subtotal = (int) Math.round(
-                plato.getPrecio() * detallePedido.getCantidad()
-        );
-
-
-        detallePedido.setSubtotal(subtotal);
-
-
-        return detallePedidoDAO.crear(detallePedido);
+        return creado;
     }
-
 
     public List<DetallePedido> listarDetalles() {
         return detallePedidoDAO.listarTodos();
@@ -82,11 +56,141 @@ public class DetallePedidoService {
         return detallePedidoDAO.listarPorPedido(idPedido);
     }
 
+    @Transactional
     public boolean actualizarDetalle(DetallePedido detallePedido) {
-        return detallePedidoDAO.actualizar(detallePedido);
+
+        DetallePedido anterior =
+                detallePedidoDAO.obtenerPorId(detallePedido.getIdDetalle());
+
+        if (anterior == null) {
+            return false;
+        }
+
+        int idAnterior = anterior.getPedido().getIdPedido();
+
+        int idNuevo = validarYCalcular(detallePedido);
+
+        if (!detallePedidoDAO.actualizar(detallePedido)) {
+            return false;
+        }
+
+        recalcularTotal(idAnterior);
+
+        if (idAnterior != idNuevo) {
+            recalcularTotal(idNuevo);
+        }
+
+        return true;
     }
 
+    @Transactional
     public boolean eliminarDetalle(int id) {
-        return detallePedidoDAO.eliminar(id);
+
+        DetallePedido anterior = detallePedidoDAO.obtenerPorId(id);
+
+        if (anterior == null) {
+            return false;
+        }
+
+        int idPedido = anterior.getPedido().getIdPedido();
+
+        if (!detallePedidoDAO.eliminar(id)) {
+            return false;
+        }
+
+        recalcularTotal(idPedido);
+
+        return true;
+    }
+
+    private int validarYCalcular(DetallePedido detalle) {
+
+        // Validar que el pedido sea valido
+        if (detalle.getPedido() == null ||
+                detalle.getPedido().getIdPedido() <= 0) {
+
+            throw new IllegalArgumentException(
+                    "Debe seleccionar un pedido valido"
+            );
+        }
+
+        int idPedido = detalle.getPedido().getIdPedido();
+
+        // Comprobar que el pedido exista
+        if (pedidoDAO.obtenerPorId(idPedido) == null) {
+
+            throw new RecursoNoEncontradoException(
+                    "No se encontro el pedido con ID: " + idPedido
+            );
+        }
+
+        // Validar que se haya seleccionado un plato
+        if (detalle.getPlato() == null ||
+                detalle.getPlato().getIdPlato() <= 0) {
+
+            throw new IllegalArgumentException(
+                    "Debe seleccionar un plato valido"
+            );
+        }
+
+        // Validar la cantidad
+        if (detalle.getCantidad() <= 0) {
+
+            throw new IllegalArgumentException(
+                    "La cantidad debe ser mayor que cero"
+            );
+        }
+
+        int idPlato = detalle.getPlato().getIdPlato();
+
+        // Consultar el precio real del plato
+        Plato plato = platoDAO.obtenerPorId(idPlato);
+
+        if (plato == null) {
+
+            throw new RecursoNoEncontradoException(
+                    "No se encontro el plato con ID: " + idPlato
+            );
+        }
+
+        // Comprobar que este disponible
+        if (!plato.isEstaActivo()) {
+
+            throw new IllegalArgumentException(
+                    "El plato seleccionado no esta disponible"
+            );
+        }
+
+        // Calcular el subtotal
+        BigDecimal subtotal = BigDecimal.valueOf(plato.getPrecio())
+                .multiply(BigDecimal.valueOf(detalle.getCantidad()))
+                .setScale(0, RoundingMode.HALF_UP);
+
+        try {
+            detalle.setSubtotal(subtotal.intValueExact());
+        } catch (ArithmeticException ex) {
+
+            throw new IllegalArgumentException(
+                    "El subtotal supera el valor permitido",
+                    ex
+            );
+        }
+
+        return idPedido;
+    }
+
+    private void recalcularTotal(int idPedido) {
+
+        BigDecimal total = detallePedidoDAO.listarPorPedido(idPedido)
+                .stream()
+                .map(detalle ->
+                        BigDecimal.valueOf(detalle.getSubtotal())
+                )
+                .reduce(
+                        BigDecimal.ZERO,
+                        BigDecimal::add
+                );
+
+        pedidoDAO.actualizarTotal(idPedido, total);
     }
 }
