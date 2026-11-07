@@ -3,6 +3,7 @@ package com.casadonagloria.restaurante.controller;
 
 import com.casadonagloria.restaurante.model.Plato;
 import com.casadonagloria.restaurante.service.PlatoService;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import jakarta.validation.Valid;
@@ -73,7 +74,7 @@ public class PlatoController {
             description = "Registra un nuevo plato en el menu del restaurante"
     )
     @ApiResponses({
-            @ApiResponse(responseCode = "200", description = "Plato registrado correctamente"),
+            @ApiResponse(responseCode = "201", description = "Plato registrado correctamente"),
             @ApiResponse(responseCode = "400", description = "Datos del plato invalidos"),
             @ApiResponse(responseCode = "500", description = "Error interno del servidor")
     })
@@ -85,7 +86,7 @@ public class PlatoController {
 
         Plato nuevoPlato = platoService.guardarPlato(plato);
 
-        return ResponseEntity.ok(nuevoPlato);
+        return ResponseEntity.status(HttpStatus.CREATED).body(nuevoPlato);
     }
 
     @Operation(

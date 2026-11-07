@@ -5,9 +5,11 @@ import com.casadonagloria.restaurante.dao.ClienteDAO;
 import com.casadonagloria.restaurante.dao.DetallePedidoDAO;
 import com.casadonagloria.restaurante.dao.PedidoDAO;
 import com.casadonagloria.restaurante.exception.RecursoNoEncontradoException;
+import com.casadonagloria.restaurante.exception.ReglaNegocioException;
 import com.casadonagloria.restaurante.model.Cliente;
 import com.casadonagloria.restaurante.model.DetallePedido;
 import com.casadonagloria.restaurante.model.Pedido;
+import com.casadonagloria.restaurante.model.Plato;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -33,17 +35,21 @@ class PedidoServiceTest {
     @Mock
     private DetallePedidoDAO detallePedidoDAO;
 
-    private PedidoService pedidoService;
+    @Mock
+    private DetallePedidoService detallePedidoService;
+
+    private PedidoServiceImpl pedidoService;
     private Cliente cliente;
     private Pedido pedido;
 
     @BeforeEach
     void setUp() {
 
-        pedidoService = new PedidoService(
+        pedidoService = new PedidoServiceImpl(
                 pedidoDAO,
                 clienteDAO,
-                detallePedidoDAO
+                detallePedidoDAO,
+                detallePedidoService
         );
 
         cliente = new Cliente();
@@ -221,5 +227,123 @@ class PedidoServiceTest {
                 1,
                 new BigDecimal("36000")
         );
+    }
+
+    @Test
+    void cambiarEstadoAvanzaAlSiguientePaso() {
+
+        when(pedidoDAO.obtenerPorId(1)).thenReturn(pedido);
+
+        Pedido resultado =
+                pedidoService.cambiarEstado(1, "EN_PREPARACION");
+
+        assertEquals("EN_PREPARACION", resultado.getEstado());
+
+        verify(pedidoDAO).actualizar(pedido);
+    }
+
+    @Test
+    void cambiarEstadoConSaltoInvalidoLanzaReglaNegocio() {
+
+        when(pedidoDAO.obtenerPorId(1)).thenReturn(pedido);
+
+        assertThrows(
+                ReglaNegocioException.class,
+                () -> pedidoService.cambiarEstado(1, "LISTO")
+        );
+
+        verify(pedidoDAO, never()).actualizar(any());
+    }
+
+    @Test
+    void cambiarEstadoConEstadoDesconocidoLanzaIllegalArgument() {
+
+        when(pedidoDAO.obtenerPorId(1)).thenReturn(pedido);
+
+        assertThrows(
+                IllegalArgumentException.class,
+                () -> pedidoService.cambiarEstado(1, "CANCELADO")
+        );
+    }
+
+    @Test
+    void cambiarEstadoDePedidoInexistenteLanzaNoEncontrado() {
+
+        when(pedidoDAO.obtenerPorId(99)).thenReturn(null);
+
+        assertThrows(
+                RecursoNoEncontradoException.class,
+                () -> pedidoService.cambiarEstado(99, "EN_PREPARACION")
+        );
+    }
+
+    @Test
+    void listarPorEstadoDevuelveSoloLosDeEseEstado() {
+
+        Pedido listo = new Pedido();
+        listo.setIdPedido(2);
+        listo.setEstado("LISTO");
+
+        when(pedidoDAO.listarTodos()).thenReturn(List.of(pedido, listo));
+
+        List<Pedido> resultado = pedidoService.listarPorEstado("LISTO");
+
+        assertEquals(1, resultado.size());
+        assertEquals(2, resultado.get(0).getIdPedido());
+    }
+
+    @Test
+    void listarPorEstadoConEstadoDesconocidoLanzaIllegalArgument() {
+
+        assertThrows(
+                IllegalArgumentException.class,
+                () -> pedidoService.listarPorEstado("CANCELADO")
+        );
+    }
+
+    @Test
+    void repetirPedidoCreaPedidoNuevoConLosMismosDetalles() {
+
+        Plato plato = new Plato();
+        plato.setIdPlato(5);
+
+        DetallePedido original = new DetallePedido();
+        original.setPlato(plato);
+        original.setCantidad(2);
+
+        Pedido nuevo = new Pedido();
+        nuevo.setIdPedido(2);
+        nuevo.setCliente(cliente);
+
+        when(pedidoDAO.obtenerPorId(1)).thenReturn(pedido);
+        when(clienteDAO.buscarPorId(1)).thenReturn(cliente);
+        when(pedidoDAO.crear(any(Pedido.class))).thenReturn(nuevo);
+        when(detallePedidoDAO.listarPorPedido(1))
+                .thenReturn(List.of(original));
+        when(pedidoDAO.obtenerPorId(2)).thenReturn(nuevo);
+
+        Pedido resultado = pedidoService.repetirPedido(1);
+
+        assertEquals(2, resultado.getIdPedido());
+
+        verify(detallePedidoService).guardarDetalle(
+                argThat(detalle ->
+                        detalle.getPedido() == nuevo
+                                && detalle.getPlato() == plato
+                                && detalle.getCantidad() == 2)
+        );
+    }
+
+    @Test
+    void repetirPedidoInexistenteLanzaNoEncontrado() {
+
+        when(pedidoDAO.obtenerPorId(99)).thenReturn(null);
+
+        assertThrows(
+                RecursoNoEncontradoException.class,
+                () -> pedidoService.repetirPedido(99)
+        );
+
+        verify(pedidoDAO, never()).crear(any());
     }
 }

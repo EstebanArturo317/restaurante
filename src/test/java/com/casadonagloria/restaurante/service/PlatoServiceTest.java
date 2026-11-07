@@ -21,7 +21,7 @@ class PlatoServiceTest {
     private PlatoDAO platoDAO;
 
     @InjectMocks
-    private PlatoService platoService;
+    private PlatoServiceImpl platoService;
 
     private List<Plato> platos;
     private Plato platoPrueba;

@@ -4,6 +4,7 @@ package com.casadonagloria.restaurante.controller;
 import com.casadonagloria.restaurante.model.Pedido;
 import com.casadonagloria.restaurante.service.PedidoService;
 
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -89,7 +90,7 @@ public class PedidoController {
             description = "Registra un pedido asociado a un cliente existente. El total inicia en cero y se calcula con los detalles"
     )
     @ApiResponses({
-            @ApiResponse(responseCode = "200", description = "Pedido registrado correctamente"),
+            @ApiResponse(responseCode = "201", description = "Pedido registrado correctamente"),
             @ApiResponse(responseCode = "400", description = "Datos del pedido invalidos"),
             @ApiResponse(responseCode = "404", description = "Referencia no encontrada"),
             @ApiResponse(responseCode = "409", description = "Conflicto de integridad")
@@ -102,7 +103,7 @@ public class PedidoController {
         Pedido nuevoPedido =
                 pedidoService.guardarPedido(pedido);
 
-        return ResponseEntity.ok(nuevoPedido);
+        return ResponseEntity.status(HttpStatus.CREATED).body(nuevoPedido);
     }
 
 
@@ -165,5 +166,58 @@ public class PedidoController {
         }
 
         return ResponseEntity.noContent().build();
+    }
+
+    @Operation(
+            summary = "Cambiar estado del pedido",
+            description = "Avanza el pedido al siguiente estado: RECIBIDO, EN_PREPARACION, LISTO, ENTREGADO"
+    )
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Estado actualizado correctamente"),
+            @ApiResponse(responseCode = "400", description = "Estado no valido"),
+            @ApiResponse(responseCode = "404", description = "Pedido no encontrado"),
+            @ApiResponse(responseCode = "409", description = "Cambio de estado no permitido"),
+            @ApiResponse(responseCode = "500", description = "Error interno del servidor")
+    })
+    @PatchMapping("/{id}/estado")
+    public ResponseEntity<Pedido> cambiarEstado(
+            @PathVariable int id,
+            @RequestParam String nuevoEstado) {
+
+        return ResponseEntity.ok(
+                pedidoService.cambiarEstado(id, nuevoEstado)
+        );
+    }
+
+    @Operation(
+            summary = "Listar pedidos por estado",
+            description = "Obtiene los pedidos que estan en un estado: RECIBIDO, EN_PREPARACION, LISTO o ENTREGADO"
+    )
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Pedidos consultados correctamente"),
+            @ApiResponse(responseCode = "400", description = "Estado no valido"),
+            @ApiResponse(responseCode = "500", description = "Error interno del servidor")
+    })
+    @GetMapping("/estado/{estado}")
+    public List<Pedido> listarPorEstado(@PathVariable String estado) {
+        return pedidoService.listarPorEstado(estado);
+    }
+
+    @Operation(
+            summary = "Repetir un pedido anterior",
+            description = "Crea un pedido nuevo para el mismo cliente con los mismos platos y cantidades, usando los precios actuales"
+    )
+    @ApiResponses({
+            @ApiResponse(responseCode = "201", description = "Pedido creado correctamente"),
+            @ApiResponse(responseCode = "400", description = "Un plato del pedido original ya no esta disponible"),
+            @ApiResponse(responseCode = "404", description = "Pedido original no encontrado"),
+            @ApiResponse(responseCode = "500", description = "Error interno del servidor")
+    })
+    @PostMapping("/{id}/repetir")
+    public ResponseEntity<Pedido> repetirPedido(@PathVariable int id) {
+
+        return ResponseEntity
+                .status(HttpStatus.CREATED)
+                .body(pedidoService.repetirPedido(id));
     }
 }
