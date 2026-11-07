@@ -11,8 +11,14 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 @RestControllerAdvice
 public class GlobalExceptionHandler {
+
+    private static final Logger log =
+            LoggerFactory.getLogger(GlobalExceptionHandler.class);
 
     // Manejar errores de validacion de datos
     @ExceptionHandler(MethodArgumentNotValidException.class)
@@ -56,7 +62,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(Exception.class)
     public ResponseEntity<Map<String, Object>> manejarErroresGenerales(
             Exception ex) {
-
+        log.error("Error inesperado", ex);
         Map<String, Object> respuesta = new HashMap<>();
         respuesta.put("estado", 500);
         respuesta.put("mensaje", "Error interno del servidor");
